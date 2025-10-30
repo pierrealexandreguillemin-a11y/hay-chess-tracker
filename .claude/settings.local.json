@@ -6,7 +6,10 @@
       "Bash(npm test:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Read(//c/Dev/chess-app/**)"
+      "Read(//c/Dev/chess-app/**)",
+      "Bash(cat:*)",
+      "Bash(git log:*)",
+      "Bash(npm run test:*)"
     ],
     "deny": [],
     "ask": []

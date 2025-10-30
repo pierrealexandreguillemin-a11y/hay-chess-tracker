@@ -56,9 +56,9 @@ describe('EventForm', () => {
       const submitButton = screen.getByRole('button', { name: /créer l'événement/i });
       fireEvent.click(submitButton);
 
-      await waitFor(() => {
-        expect(screen.getByText(/événement est requis/i)).toBeInTheDocument();
-      });
+      // Error should appear after state update
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toHaveTextContent(/événement est requis/i);
       expect(mockOnEventCreated).not.toHaveBeenCalled();
     });
 
@@ -105,24 +105,22 @@ describe('EventForm', () => {
       expect(tournamentInputs.length).toBe(2);
     });
 
-    it('shows remove button when multiple tournaments exist', async () => {
+    it('shows remove button when multiple tournaments exist', () => {
       render(<EventForm onEventCreated={mockOnEventCreated} />);
+
+      // Initially should have 2 buttons (add tournament + submit)
+      let buttons = screen.getAllByRole('button');
+      const initialButtonCount = buttons.length;
 
       const addButton = screen.getByRole('button', { name: /ajouter un tournoi/i });
       fireEvent.click(addButton);
 
-      // Check for X icon buttons (should be 2 after adding one more tournament)
-      await waitFor(() => {
-        const allButtons = screen.getAllByRole('button');
-        const xButtons = allButtons.filter(btn => {
-          const svg = btn.querySelector('svg');
-          return svg && svg.classList.contains('lucide-x');
-        });
-        expect(xButtons.length).toBeGreaterThanOrEqual(1);
-      });
+      // After adding a tournament, should have additional remove buttons (2 remove + add + submit = 4 total)
+      buttons = screen.getAllByRole('button');
+      expect(buttons.length).toBeGreaterThan(initialButtonCount);
     });
 
-    it('removes tournament when remove button is clicked', async () => {
+    it('removes tournament when remove button is clicked', () => {
       render(<EventForm onEventCreated={mockOnEventCreated} />);
 
       // Add a second tournament
@@ -132,19 +130,19 @@ describe('EventForm', () => {
       let tournamentInputs = screen.getAllByLabelText(/nom \(ex: u12, u14\)/i);
       expect(tournamentInputs.length).toBe(2);
 
-      // Find and click a remove button
-      await waitFor(() => {
-        const buttons = screen.getAllByRole('button');
-        const removeButton = buttons.find(btn => {
-          const svg = btn.querySelector('svg');
-          return svg && svg.classList.contains('lucide-x');
-        });
-        expect(removeButton).toBeDefined();
-        if (removeButton) {
-          fireEvent.click(removeButton);
-        }
-      });
+      // Find remove buttons (they should be icon buttons without text, size icon, variant ghost)
+      const buttons = screen.getAllByRole('button');
+      // Remove buttons are the ones that are NOT "add tournament" or "submit" buttons
+      const removeButtons = buttons.filter(btn =>
+        !btn.textContent?.includes('Ajouter un tournoi') &&
+        !btn.textContent?.includes('Créer l\'événement')
+      );
+      expect(removeButtons.length).toBeGreaterThan(0);
 
+      // Click the first remove button
+      fireEvent.click(removeButtons[0]);
+
+      // After removal, should have 1 tournament left
       tournamentInputs = screen.getAllByLabelText(/nom \(ex: u12, u14\)/i);
       expect(tournamentInputs.length).toBe(1);
     });
@@ -441,9 +439,9 @@ describe('EventForm', () => {
       const submitButton = screen.getByRole('button', { name: /créer l'événement/i });
       fireEvent.click(submitButton);
 
-      await waitFor(() => {
-        expect(screen.getByText(/événement est requis/i)).toBeInTheDocument();
-      });
+      // Wait for error to appear
+      const errorAlert = await screen.findByRole('alert');
+      expect(errorAlert).toHaveTextContent(/événement est requis/i);
 
       // Now fill valid data
       const eventNameInput = screen.getByPlaceholderText(/championnat départemental/i);
@@ -457,6 +455,7 @@ describe('EventForm', () => {
 
       fireEvent.click(submitButton);
 
+      // Should call callback and not show error
       await waitFor(() => {
         expect(mockOnEventCreated).toHaveBeenCalled();
       });

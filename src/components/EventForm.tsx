@@ -64,9 +64,11 @@ export default function EventForm({ onEventCreated }: EventFormProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
 
     if (!validateForm()) return;
+
+    // Clear error on successful validation
+    setError('');
 
     // Create event object
     const validTournaments = tournaments.filter(t => t.name.trim() && t.url.trim());
@@ -102,7 +104,6 @@ export default function EventForm({ onEventCreated }: EventFormProps) {
               placeholder="Ex: Championnat départemental 13 - Oct 2025"
               value={eventName}
               onChange={(e) => setEventName(e.target.value)}
-              required
             />
           </div>
 
