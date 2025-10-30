@@ -96,7 +96,7 @@ export default function EventForm({ onEventCreated }: EventFormProps) {
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Event Name */}
           <div className="space-y-2">
-            <Label htmlFor="eventName">Nom de l'événement *</Label>
+            <Label htmlFor="eventName">Nom de l&apos;événement *</Label>
             <Input
               id="eventName"
               placeholder="Ex: Championnat départemental 13 - Oct 2025"
@@ -179,7 +179,7 @@ export default function EventForm({ onEventCreated }: EventFormProps) {
           {/* Submit Button */}
           <div className="flex gap-2 justify-end">
             <Button type="submit" variant="miami">
-              Créer l'événement
+              Créer l&apos;événement
             </Button>
           </div>
         </form>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { getCurrentEvent, saveEvent } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import EventForm from '@/components/EventForm';
@@ -10,19 +10,9 @@ import MiamiGlass from '@/components/common/MiamiGlass';
 import type { Event } from '@/types';
 
 function App() {
-  const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
-  const [showEventForm, setShowEventForm] = useState(false);
-
-  // Load current event on mount
-  useEffect(() => {
-    const event = getCurrentEvent();
-    setCurrentEvent(event);
-
-    // Show form if no event exists
-    if (!event) {
-      setShowEventForm(true);
-    }
-  }, []);
+  // Load current event on mount using lazy initialization
+  const [currentEvent, setCurrentEvent] = useState<Event | null>(() => getCurrentEvent());
+  const [showEventForm, setShowEventForm] = useState(() => !getCurrentEvent());
 
   const handleEventCreated = (event: Event) => {
     saveEvent(event);

@@ -1,18 +1,12 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dir)",
-      "Bash(dir:*)",
-      "Bash(test:*)",
-      "Bash(npm install)",
-      "Bash(npm install:*)",
-      "Read(//c/Dev/chess-app/frontend/src/**)",
-      "Bash(npm run build:*)",
-      "Read(//c/Dev/chess-app/**)",
-      "Bash(git init:*)",
+      "*",
+      "Bash(npm run test:coverage:*)",
+      "Bash(npm test:*)",
       "Bash(git add:*)",
       "Bash(git commit:*)",
-      "Bash(git config:*)"
+      "Read(//c/Dev/chess-app/**)"
     ],
     "deny": [],
     "ask": []

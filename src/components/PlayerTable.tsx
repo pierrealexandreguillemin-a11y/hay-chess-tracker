@@ -19,9 +19,23 @@ interface PlayerTableProps {
 }
 
 export default function PlayerTable({ tournament }: PlayerTableProps) {
-  const [validationState, setValidationState] = useState<Record<string, Record<number, boolean>>>({});
+  // Load validation state using lazy initialization
+  const [validationState, setValidationState] = useState<Record<string, Record<number, boolean>>>(() => {
+    const state: Record<string, Record<number, boolean>> = {};
+    tournament.players.forEach(player => {
+      state[player.name] = {};
+      player.results.forEach((_, roundIndex) => {
+        state[player.name][roundIndex + 1] = getValidation(
+          tournament.id,
+          player.name,
+          roundIndex + 1
+        );
+      });
+    });
+    return state;
+  });
 
-  // Load validation state on mount
+  // Update validation state when tournament changes (sync with localStorage)
   useEffect(() => {
     const state: Record<string, Record<number, boolean>> = {};
     tournament.players.forEach(player => {
@@ -34,8 +48,9 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
         );
       });
     });
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setValidationState(state);
-  }, [tournament]);
+  }, [tournament.id, tournament.players]);
 
   const handleValidationChange = (playerName: string, round: number, checked: boolean) => {
     setValidation(tournament.id, playerName, round, checked);

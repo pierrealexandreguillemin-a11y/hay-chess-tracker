@@ -1,13 +1,12 @@
 import { ReactNode } from 'react';
 import ShimmerEffect from './ShimmerEffect';
 
-interface MiamiGlassProps {
+interface MiamiGlassProps extends Omit<React.HTMLAttributes<HTMLDivElement>, 'style'> {
   children: ReactNode;
   className?: string;
   style?: React.CSSProperties;
   variant?: 'background' | 'foreground';
   shimmer?: boolean;
-  [key: string]: any;
 }
 
 export default function MiamiGlass({

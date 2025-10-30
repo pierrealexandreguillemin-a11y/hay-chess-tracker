@@ -9,7 +9,10 @@ export default function FloatingParticles({
   density = 50,
   speed = 1
 }: FloatingParticlesProps) {
+  // Generate particles with random positions - memoized to prevent re-generation on every render
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const particles = useMemo(() => {
+    // Using Math.random() here is intentional and safe within useMemo
     return Array.from({ length: density }, (_, i) => ({
       id: i,
       x: Math.random() * 100,
