@@ -1,0 +1,155 @@
+import { useState, useEffect } from 'react';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Card } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Badge } from '@/components/ui/badge';
+import { Check, X, Minus } from 'lucide-react';
+import { setValidation, getValidation } from '@/lib/storage';
+import type { Tournament } from '@/types';
+
+interface PlayerTableProps {
+  tournament: Tournament;
+}
+
+export default function PlayerTable({ tournament }: PlayerTableProps) {
+  const [validationState, setValidationState] = useState<Record<string, Record<number, boolean>>>({});
+
+  // Load validation state on mount
+  useEffect(() => {
+    const state: Record<string, Record<number, boolean>> = {};
+    tournament.players.forEach(player => {
+      state[player.name] = {};
+      player.results.forEach((_, roundIndex) => {
+        state[player.name][roundIndex + 1] = getValidation(
+          tournament.id,
+          player.name,
+          roundIndex + 1
+        );
+      });
+    });
+    setValidationState(state);
+  }, [tournament]);
+
+  const handleValidationChange = (playerName: string, round: number, checked: boolean) => {
+    setValidation(tournament.id, playerName, round, checked);
+    setValidationState(prev => ({
+      ...prev,
+      [playerName]: {
+        ...prev[playerName],
+        [round]: checked,
+      },
+    }));
+  };
+
+  const getScoreIcon = (score: 0 | 0.5 | 1) => {
+    if (score === 1) return <Check className="h-4 w-4 text-green-600" />;
+    if (score === 0) return <X className="h-4 w-4 text-red-600" />;
+    return <Minus className="h-4 w-4 text-yellow-600" />;
+  };
+
+  const maxRounds = Math.max(...tournament.players.map(p => p.results.length), 0);
+
+  return (
+    <Card className="miami-card overflow-hidden">
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="font-bold">Nom</TableHead>
+              <TableHead className="font-bold text-center">Elo</TableHead>
+              {Array.from({ length: maxRounds }, (_, i) => (
+                <TableHead key={i} className="text-center font-bold">
+                  R{i + 1}
+                </TableHead>
+              ))}
+              <TableHead className="text-center font-bold">Pts</TableHead>
+              <TableHead className="text-center font-bold">Buch.</TableHead>
+              <TableHead className="text-center font-bold">Perf.</TableHead>
+              <TableHead className="text-center font-bold">Class.</TableHead>
+              <TableHead className="text-center font-bold">Valid.</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tournament.players.map((player) => (
+              <TableRow key={player.name}>
+                <TableCell className="font-medium">{player.name}</TableCell>
+                <TableCell className="text-center">{player.elo}</TableCell>
+
+                {/* Round Results */}
+                {Array.from({ length: maxRounds }, (_, i) => {
+                  const result = player.results[i];
+                  return (
+                    <TableCell key={i} className="text-center">
+                      {result ? (
+                        <div className="flex items-center justify-center">
+                          {getScoreIcon(result.score)}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                  );
+                })}
+
+                <TableCell className="text-center font-semibold">
+                  {player.currentPoints}
+                </TableCell>
+
+                <TableCell className="text-center">
+                  {player.buchholz ? player.buchholz.toFixed(1) : '-'}
+                </TableCell>
+
+                <TableCell className="text-center">
+                  {player.performance || '-'}
+                </TableCell>
+
+                <TableCell className="text-center">
+                  <Badge variant="outline">{player.ranking}</Badge>
+                </TableCell>
+
+                {/* Validation Checkboxes */}
+                <TableCell className="text-center">
+                  <div className="flex gap-1 justify-center">
+                    {player.results.map((_, roundIndex) => {
+                      const round = roundIndex + 1;
+                      const isValidated =
+                        validationState[player.name]?.[round] || false;
+
+                      return (
+                        <Checkbox
+                          key={round}
+                          checked={isValidated}
+                          onCheckedChange={(checked) =>
+                            handleValidationChange(
+                              player.name,
+                              round,
+                              checked as boolean
+                            )
+                          }
+                          title={`Valider ronde ${round} pour ${player.name}`}
+                        />
+                      );
+                    })}
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {tournament.players.length === 0 && (
+        <div className="text-center py-8 text-muted-foreground">
+          Aucun joueur à afficher
+        </div>
+      )}
+    </Card>
+  );
+}

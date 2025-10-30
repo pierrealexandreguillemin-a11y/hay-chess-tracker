@@ -1,0 +1,471 @@
+super: crée dossier d'installation et de développement dans C:\Dev . je lancerai claude code dans ce dossier. instructions autonomie complète 0 friction utilisateur, tests complets automatisés, style miami du frontend chess-app (C:\Dev\chess-app\frontend\src), shadcn/ui pour composants ou existants ou bilbliothèque vo/vercel ?.
+ok ?
+
+📋 SPEC COMPLÈTE - HAY CHESS TOURNAMENT TRACKER
+🎯 Vue d'ensemble
+Application web pour suivi en temps réel des résultats des tournois d'échecs FFE pour le club "Hay Chess".
+
+Utilisateurs cibles : Parents bénévoles, responsables club (non-techniques)
+Plateforme : Web responsive (desktop + mobile)
+Hébergement : Vercel (gratuit, serverless)
+
+📁 Structure du projet
+C:\Dev\hay-chess-tracker\
+├── src/                          # Frontend React
+│   ├── components/
+│   │   ├── ui/                   # shadcn/ui components
+│   │   ├── EventForm.tsx         # Formulaire création événement
+│   │   ├── TournamentTab.tsx     # Onglet tournoi
+│   │   ├── PlayerTable.tsx       # Tableau joueurs
+│   │   ├── ClubStats.tsx         # Stats club
+│   │   └── ResultValidation.tsx  # Validation résultats
+│   ├── lib/
+│   │   ├── scraper.ts            # Logic scraping
+│   │   ├── parser.ts             # Parse HTML FFE
+│   │   └── storage.ts            # localStorage management
+│   ├── types/
+│   │   └── index.ts              # TypeScript types
+│   ├── styles/
+│   │   └── globals.css           # Styles Miami (copier depuis chess-app)
+│   ├── App.tsx
+│   └── main.tsx
+├── api/                          # Vercel Functions (backend serverless)
+│   └── scrape.ts                 # Proxy CORS pour FFE
+├── public/
+├── vercel.json                   # Config Vercel
+├── package.json
+├── tsconfig.json
+├── vite.config.ts
+├── tailwind.config.js
+├── postcss.config.js
+├── components.json               # shadcn/ui config
+└── README.md
+```
+
+---
+
+## 🛠 Stack technique
+
+**Frontend :**
+- React 18 + TypeScript
+- Vite (build tool)
+- shadcn/ui (composants UI)
+- Tailwind CSS (styling)
+- Style Miami glassmorphism (depuis chess-app)
+
+**Backend :**
+- Vercel Serverless Functions
+- Node.js fetch API
+- Cheerio ou node-html-parser (parse HTML)
+
+**Stockage :**
+- localStorage (événements, tournois, validations)
+
+---
+
+## 🎨 Design UI/UX
+
+### Style visuel
+- **Reprendre exactement le style Miami de chess-app** :
+  - Glassmorphism effects
+  - Palette : `--miami-aqua`, `--miami-orange`, `--miami-navy`
+  - Shimmer animations
+  - `miami-glass-foreground`, `miami-shimmer` classes
+
+### Layout principal
+```
+┌─────────────────────────────────────────────┐
+│  HAY CHESS TRACKER        [Nouvel événement]│
+│  [Nom événement actuel]                     │
+├─────────────────────────────────────────────┤
+│  [U12] [U14] [U16] [U18]  <- Onglets       │
+├─────────────────────────────────────────────┤
+│  📊 Stats Club - Ronde 3                    │
+│  Score: 12.5/16 joueurs | Moy: 0.78 pts    │
+│                                   [Refresh] │
+├─────────────────────────────────────────────┤
+│  Joueurs Hay Chess (16)                     │
+│  ┌──────────────────────────────────────┐  │
+│  │Nom      │Elo │R1│R2│R3│Pts│Rk│Valid.│  │
+│  │BACHKAT  │1468│1 │1 │0 │2.0│5 │ ☐   │  │
+│  │ENGLES   │1550│1 │0.5│1│2.5│3 │ ☑   │  │
+│  └──────────────────────────────────────┘  │
+└─────────────────────────────────────────────┘
+🔧 Fonctionnalités détaillées
+1. Création événement
+Formulaire "Nouvel événement" :
+
+typescript
+interface Event {
+  id: string;
+  name: string; // "Championnat départemental 13 - Oct 2025"
+  createdAt: string;
+  tournaments: Tournament[];
+}
+
+interface Tournament {
+  id: string;
+  name: string; // "U12"
+  url: string;  // URL page résultats FFE
+  lastUpdate: string;
+  players: Player[];
+}
+Champs formulaire :
+
+Nom événement (input text)
+Bouton "Ajouter tournoi" → Mini-form :
+Nom onglet (ex: "U12")
+URL FFE résultats
+Bouton "Créer événement"
+Validation :
+
+Nom événement requis
+Au moins 1 tournoi
+URLs valides (format echecs.asso.fr/Resultats.aspx)
+2. Scraping FFE
+API Route : /api/scrape.ts
+
+typescript
+// Vercel Function
+export default async function handler(req: Request) {
+  const { url } = await req.json();
+  
+  // Fetch page FFE
+  const html = await fetch(url).then(r => r.text());
+  
+  // Return raw HTML
+  return new Response(JSON.stringify({ html }), {
+    headers: { 'Content-Type': 'application/json' }
+  });
+}
+Frontend appelle : POST /api/scrape avec { url }
+
+3. Parsing HTML FFE
+Parser la grille américaine :
+
+typescript
+interface Player {
+  name: string;
+  elo: number;
+  club: string;
+  results: Result[]; // Par ronde
+  currentPoints: number;
+  buchholz?: number;   // Ronde en cours seulement
+  performance?: number; // Ronde en cours seulement
+  ranking: number;      // Classement tournoi complet
+  validated: boolean[]; // Une par ronde
+}
+
+interface Result {
+  round: number;
+  score: 0 | 0.5 | 1;
+  opponent?: string;
+}
+```
+
+**Logic parsing :**
+1. Parser tableau HTML (structure vue dans l'exemple U14)
+2. Extraire lignes avec `Club = "Hay Chess"`
+3. Parser colonnes : Nom, Elo, R1, R2, R3..., Pts, Tr (Buchholz), Perf
+4. Calculer ranking (position dans tableau complet)
+
+---
+
+### 4. Affichage tableau joueurs
+
+**Composant `PlayerTable.tsx` :**
+
+**Colonnes :**
+- Nom (lien vers fiche FFE ?)
+- Elo
+- R1, R2, R3... (afficher 1/0/0.5 avec icônes ✓/✗/=)
+- Points cumulés (après chaque ronde)
+- **Pour ronde en cours uniquement :**
+  - Buchholz
+  - Performance
+- Classement (ex: "5/64")
+- Validation (checkbox par ronde)
+
+**Indicateurs visuels validation :**
+- ⏳ Gris : Non validé
+- ✅ Vert : Validé par responsable
+- ❌ Rouge : Alerte si écart détecté (optionnel)
+
+**Tri par défaut :** Classement tournoi (meilleur en haut)
+
+---
+
+### 5. Stats club
+
+**Composant `ClubStats.tsx` :**
+
+**Affichage (en haut d'onglet) :**
+```
+📊 Stats Club - Ronde [N]
+Score total: [X] points / [Y] joueurs
+Moyenne: [Z] pts/joueur
+Calculs :
+
+X = somme des points de tous les joueurs Hay Chess à la ronde N
+Y = nombre de joueurs Hay Chess
+Z = X / Y (arrondi 2 décimales)
+6. Refresh manuel
+Bouton "Refresh" par onglet :
+
+Appelle /api/scrape avec URL du tournoi
+Parse HTML
+Compare avec données locales
+Highlight changements (optionnel : flash jaune)
+Update localStorage
+Fréquence : Manuel uniquement (pas d'auto-refresh)
+
+7. Stockage local
+localStorage structure :
+
+typescript
+{
+  "currentEventId": "evt_123",
+  "events": [
+    {
+      "id": "evt_123",
+      "name": "Championnat départemental 13",
+      "tournaments": [...],
+      "validations": {
+        "tournament_id": {
+          "player_name": {
+            "round_1": true,
+            "round_2": false
+          }
+        }
+      }
+    }
+  ]
+}
+📦 Configuration fichiers
+package.json
+json
+{
+  "name": "hay-chess-tracker",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "lint": "eslint . --ext ts,tsx"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "cheerio": "^1.0.0",
+    "lucide-react": "^0.263.1",
+    "date-fns": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^18.3.3",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.1",
+    "autoprefixer": "^10.4.20",
+    "postcss": "^8.4.47",
+    "tailwindcss": "^3.4.1",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1",
+    "eslint": "^8.57.0"
+  }
+}
+vercel.json
+json
+{
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "nodejs20.x"
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/(.*)",
+      "destination": "/api/$1"
+    }
+  ]
+}
+vite.config.ts
+typescript
+import { defineConfig } from 'vite';
+import react from '@vitejs/plugin-react';
+import path from 'path';
+
+export default defineConfig({
+  plugins: [react()],
+  resolve: {
+    alias: {
+      '@': path.resolve(__dirname, './src')
+    }
+  }
+});
+tailwind.config.js
+javascript
+/** @type {import('tailwindcss').Config} */
+export default {
+  content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
+  theme: {
+    extend: {
+      colors: {
+        'miami-aqua': '#008E97',
+        'miami-orange': '#FC4F00',
+        'miami-navy': '#013369'
+      }
+    }
+  },
+  plugins: []
+};
+components.json (shadcn/ui)
+json
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "style": "default",
+  "rsc": false,
+  "tsx": true,
+  "tailwind": {
+    "config": "tailwind.config.js",
+    "css": "src/styles/globals.css",
+    "baseColor": "slate",
+    "cssVariables": true
+  },
+  "aliases": {
+    "components": "@/components",
+    "utils": "@/lib/utils"
+  }
+}
+🚀 Instructions déploiement Vercel
+Préparation
+Push code sur GitHub
+Se connecter à Vercel : https://vercel.com
+"Import Project" → Sélectionner repo GitHub
+Configuration Vercel
+Framework Preset : Vite
+Root Directory : .
+Build Command : npm run build
+Output Directory : dist
+Install Command : npm install
+Variables d'environnement
+Aucune requise pour l'instant.
+
+Déploiement
+Push sur main → Auto-deploy
+URL générée : https://hay-chess-tracker.vercel.app
+✅ Tests à faire
+Tests manuels essentiels
+✅ Créer événement avec 2 tournois
+✅ Scraper page FFE U12/U14
+✅ Afficher uniquement joueurs Hay Chess
+✅ Valider résultats (checkboxes)
+✅ Refresh manuel → détecte changements
+✅ Stats club calculées correctement
+✅ Responsive mobile (320px width)
+✅ localStorage persiste refresh navigateur
+Tests edge cases
+URL FFE invalide → message erreur
+Aucun joueur Hay Chess → message "Aucun joueur"
+Tournoi sans résultats encore → gérer gracefully
+localStorage plein → warning
+🎯 Checklist développement
+Phase 1 : Setup (30 min)
+ Init projet Vite React TypeScript
+ Install shadcn/ui
+ Copier globals.css depuis chess-app
+ Setup Tailwind avec couleurs Miami
+ Créer structure dossiers
+Phase 2 : Backend (1h)
+ Créer /api/scrape.ts Vercel Function
+ Tester fetch page FFE en local
+ Parser HTML avec Cheerio
+ Retourner JSON propre
+Phase 3 : Frontend Core (2h)
+ Composant EventForm
+ Layout avec onglets
+ localStorage helpers
+ Types TypeScript complets
+Phase 4 : Affichage données (2h)
+ Composant PlayerTable
+ Parser FFE → format Player[]
+ Filtrage club "Hay Chess"
+ Calcul ranking/stats
+Phase 5 : Validation (1h)
+ Checkboxes validation
+ Persist validations localStorage
+ Indicateurs visuels ⏳/✅
+Phase 6 : Stats & Polish (1h)
+ Composant ClubStats
+ Calculs moyennes
+ Bouton Refresh
+ Loading states
+Phase 7 : Tests & Deploy (1h)
+ Tests manuels complets
+ Responsive mobile
+ Push GitHub
+ Deploy Vercel
+ Tester prod
+Total estimé : 8-10 heures
+
+📱 Responsive breakpoints
+Mobile : 320px - 640px (1 colonne)
+Tablet : 641px - 1024px (optimisé onglets)
+Desktop : 1025px+ (full width)
+Priorité mobile-first !
+
+🔐 Sécurité & Limitations
+Rate limiting FFE
+Pas d'auto-refresh (seulement manuel)
+Ajouter delay 2s entre scrapes multiples
+Message utilisateur : "Attendre 2s entre refresh"
+CORS
+Géré par Vercel Function (proxy)
+Frontend ne contacte jamais FFE directement
+Données sensibles
+Aucune (données publiques FFE)
+Pas d'authentification requise
+📝 Notes importantes
+Club hardcodé : "Hay Chess" en dur dans le code (pas de sélection)
+Scraping doux : Refresh manuel uniquement, respecter FFE
+Zero friction : Parent ouvre URL → ça marche direct
+localStorage : Peut être effacé par navigateur (prévoir export JSON ?)
+Future : Ajouter export PDF/Excel des résultats ?
+🎨 Composants shadcn/ui à installer
+bash
+npx shadcn-ui@latest init
+npx shadcn-ui@latest add button
+npx shadcn-ui@latest add input
+npx shadcn-ui@latest add label
+npx shadcn-ui@latest add tabs
+npx shadcn-ui@latest add table
+npx shadcn-ui@latest add checkbox
+npx shadcn-ui@latest add card
+npx shadcn-ui@latest add badge
+npx shadcn-ui@latest add alert
+🐛 Debugging tips
+Si scraping échoue :
+
+Vérifier structure HTML FFE (peut changer)
+Tester URL directement dans navigateur
+Console.log HTML brut pour debug
+Si localStorage plein :
+
+Limite 5-10MB selon navigateur
+Nettoyer vieux événements
+Si Vercel deploy fail :
+
+Vérifier vercel.json config
+Build en local : npm run build
+Check TypeScript errors
+📞 Support
+Si problème technique :
+
+Check Console errors navigateur
+Tester en local : npm run dev
+Vérifier page FFE toujours même structure
+FIN DE SPEC
+
+PRÊT POUR CLAUDE CODE ! 🚀
+
+Copie ce document complet et donne-le à Claude Code dans VS Code. Il a TOUT pour coder l'app en autonomie complète.
