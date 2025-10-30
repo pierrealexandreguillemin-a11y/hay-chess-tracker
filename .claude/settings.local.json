@@ -14,7 +14,9 @@
       "Bash(npm audit:*)",
       "Bash(dir C:Devhay-chess-tracker)",
       "Bash(findstr:*)",
-      "Bash(npm run build:*)"
+      "Bash(npm run build:*)",
+      "Bash(awk:*)",
+      "Bash(git rm:*)"
     ],
     "deny": [],
     "ask": []
