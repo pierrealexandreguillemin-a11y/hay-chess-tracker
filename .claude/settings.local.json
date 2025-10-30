@@ -9,7 +9,12 @@
       "Read(//c/Dev/chess-app/**)",
       "Bash(cat:*)",
       "Bash(git log:*)",
-      "Bash(npm run test:*)"
+      "Bash(npm run test:*)",
+      "Bash(git push:*)",
+      "Bash(npm audit:*)",
+      "Bash(dir C:Devhay-chess-tracker)",
+      "Bash(findstr:*)",
+      "Bash(npm run build:*)"
     ],
     "deny": [],
     "ask": []

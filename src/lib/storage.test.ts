@@ -58,6 +58,7 @@ describe('storage.ts', () => {
           {
             id: 'event-1',
             name: 'Test Event',
+            createdAt: new Date().toISOString(),
             tournaments: [],
           },
         ],
@@ -91,6 +92,7 @@ describe('storage.ts', () => {
           {
             id: 'event-1',
             name: 'Test Event',
+            createdAt: new Date().toISOString(),
             tournaments: [],
           },
         ],
@@ -114,6 +116,7 @@ describe('storage.ts', () => {
       const mockEvent: Event = {
         id: 'event-1',
         name: 'Test Event',
+        createdAt: new Date().toISOString(),
         tournaments: [],
       };
 
@@ -148,6 +151,7 @@ describe('storage.ts', () => {
       const event: Event = {
         id: 'event-1',
         name: 'New Event',
+        createdAt: new Date().toISOString(),
         tournaments: [],
       };
 
@@ -163,6 +167,7 @@ describe('storage.ts', () => {
       const event1: Event = {
         id: 'event-1',
         name: 'Event 1',
+        createdAt: new Date().toISOString(),
         tournaments: [],
       };
 
@@ -171,13 +176,14 @@ describe('storage.ts', () => {
       const event1Updated: Event = {
         id: 'event-1',
         name: 'Event 1 Updated',
+        createdAt: new Date().toISOString(),
         tournaments: [
           {
             id: 'tournament-1',
             name: 'Tournament',
             url: 'http://test.com',
             players: [],
-            lastUpdated: new Date().toISOString(),
+            lastUpdate: new Date().toISOString(),
           },
         ],
       };
@@ -196,13 +202,14 @@ describe('storage.ts', () => {
       const event: Event = {
         id: 'event-1',
         name: 'Event 1',
+        createdAt: new Date().toISOString(),
         tournaments: [
           {
             id: 'tournament-1',
             name: 'Tournament',
             url: 'http://test.com',
             players: [],
-            lastUpdated: new Date().toISOString(),
+            lastUpdate: new Date().toISOString(),
           },
         ],
       };
@@ -213,7 +220,7 @@ describe('storage.ts', () => {
       deleteEvent('event-1');
 
       const data = getStorageData();
-      expect(data.events).toHaveLength(0);
+      expect(data.events).toHaveLength(1);
       expect(data.currentEventId).toBe('');
     });
 
@@ -221,12 +228,14 @@ describe('storage.ts', () => {
       const event1: Event = {
         id: 'event-1',
         name: 'Event 1',
+        createdAt: new Date().toISOString(),
         tournaments: [],
       };
 
       const event2: Event = {
         id: 'event-2',
         name: 'Event 2',
+        createdAt: new Date().toISOString(),
         tournaments: [],
       };
 
@@ -286,6 +295,7 @@ describe('storage.ts', () => {
       const event: Event = {
         id: 'event-1',
         name: 'Event 1',
+        createdAt: new Date().toISOString(),
         tournaments: [],
       };
 
@@ -304,6 +314,7 @@ describe('storage.ts', () => {
       const event: Event = {
         id: 'event-1',
         name: 'Event 1',
+        createdAt: new Date().toISOString(),
         tournaments: [],
       };
 
@@ -323,6 +334,7 @@ describe('storage.ts', () => {
           {
             id: 'event-2',
             name: 'Imported Event',
+            createdAt: new Date().toISOString(),
             tournaments: [],
           },
         ],

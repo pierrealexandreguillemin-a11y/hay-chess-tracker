@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import '@testing-library/jest-dom';
 import TournamentTabs from './TournamentTabs';
 import { parseFFePages, getListUrl } from '@/lib/parser';
 import { saveEvent } from '@/lib/storage';
@@ -166,7 +167,6 @@ describe('TournamentTabs', () => {
       mockParseFFePages.mockReturnValue({
         players: mockPlayers,
         currentRound: 1,
-        totalRounds: 1,
       });
 
       render(<TournamentTabs event={mockEvent} onEventUpdate={mockOnEventUpdate} />);
@@ -194,7 +194,6 @@ describe('TournamentTabs', () => {
       mockParseFFePages.mockReturnValue({
         players: mockPlayers,
         currentRound: 1,
-        totalRounds: 1,
       });
 
       render(<TournamentTabs event={mockEvent} onEventUpdate={mockOnEventUpdate} />);
@@ -230,7 +229,6 @@ describe('TournamentTabs', () => {
       mockParseFFePages.mockReturnValue({
         players: mockPlayers,
         currentRound: 1,
-        totalRounds: 1,
       });
 
       const mockSaveEvent = vi.mocked(saveEvent);
@@ -377,7 +375,6 @@ describe('TournamentTabs', () => {
       mockParseFFePages.mockReturnValue({
         players: mockPlayers,
         currentRound: 1,
-        totalRounds: 1,
       });
 
       render(<TournamentTabs event={mockEvent} onEventUpdate={mockOnEventUpdate} />);
