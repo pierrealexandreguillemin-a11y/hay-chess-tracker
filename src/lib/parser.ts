@@ -130,11 +130,11 @@ export function parsePlayerClubs(htmlList: string): Map<string, string> {
   // Find player list table
   $('table tr').each((_, row) => {
     const cells = $(row).find('td');
-    if (cells.length < 7) return; // Skip header rows
+    if (cells.length < 8) return; // Skip header rows (need 8 cols: Nr, blank, Nom, Rapide, Cat, Fede, Ligue, Club)
 
-    const nameRaw = $(cells[1]).text().trim();
+    const nameRaw = $(cells[2]).text().trim(); // Column 3 = Nom
     const name = cleanPlayerName(nameRaw);
-    const club = $(cells[6]).text().trim();
+    const club = $(cells[7]).text().trim(); // Column 8 = Club
 
     if (name && club) {
       playerClubMap.set(name, club);
