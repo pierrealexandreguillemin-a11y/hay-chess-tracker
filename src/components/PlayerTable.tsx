@@ -91,7 +91,9 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
                 </TableHead>
               ))}
               <TableHead className="text-center font-bold">Pts</TableHead>
+              <TableHead className="text-center font-bold">Tr.</TableHead>
               <TableHead className="text-center font-bold">Buch.</TableHead>
+              <TableHead className="text-center font-bold">Perf</TableHead>
               <TableHead className="text-center font-bold">Class.</TableHead>
             </TableRow>
             {/* Club Totals Row - Aligned with columns */}
@@ -106,13 +108,15 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
               <TableHead className="text-center">-</TableHead>
               <TableHead className="text-center">-</TableHead>
               <TableHead className="text-center">-</TableHead>
+              <TableHead className="text-center">-</TableHead>
+              <TableHead className="text-center">-</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {tournament.players.map((player, playerIndex) => (
               <TableRow
                 key={player.name}
-                className={playerIndex % 2 === 0 ? 'bg-white/50' : 'bg-miami-aqua/5'}
+                className={playerIndex % 2 === 0 ? 'bg-white/30' : 'bg-miami-aqua/5'}
               >
                 <TableCell className="font-medium">{player.name}</TableCell>
                 <TableCell className="text-center">{player.elo}</TableCell>
@@ -156,7 +160,15 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
                 </TableCell>
 
                 <TableCell className="text-center">
+                  {player.tiebreak ? player.tiebreak.toFixed(1) : '-'}
+                </TableCell>
+
+                <TableCell className="text-center">
                   {player.buchholz ? player.buchholz.toFixed(1) : '-'}
+                </TableCell>
+
+                <TableCell className="text-center">
+                  {player.performance || '-'}
                 </TableCell>
 
                 <TableCell className="text-center">

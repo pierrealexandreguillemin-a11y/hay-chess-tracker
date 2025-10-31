@@ -151,16 +151,28 @@ export function parseResults(
     const elo = parseElo($(infoCells[4]).text().trim());              // Cell[4]
     const currentPoints = parsePoints($(infoCells[8]).text().trim()); // Cell[8]
 
-    // Cell[9] = Tr. (Tronqué/Tiebreak) - ignored for now
-    // Cell[10] = Buchholz with HTML entity handling
-    const buchText = $(infoCells[10]).text().trim()                   // Cell[10]
+    // Cell[9] = Tr. (Tronqué/Tiebreak) from sub-table
+    const trText = $(infoCells[9]).text().trim()
+      .replace('½', '.5')
+      .replace('&frac12;', '.5');
+    const tiebreak = parseFloat(trText) || undefined;
+
+    // Cell[10] = Buchholz from sub-table
+    const buchText = $(infoCells[10]).text().trim()
       .replace('½', '.5')
       .replace('&frac12;', '.5');
     const buchholz = parseFloat(buchText) || undefined;
 
-    // Performance removed - Claude was too incompetent to handle this properly
-    // User downgrading project due to Claude's inability to parse this simple column
-    const performance = undefined;
+    // Performance from outer row - RELATIVE indexing (last cell)
+    // Outer cells structure: [...rounds..., Pts, Tr., Buch., Perf]
+    const tdParent = $(row).find('td').filter((_, td) => {
+      return $(td).find('div.papi_joueur_box').length > 0;
+    }).first();
+    const outerCells = tdParent.nextAll('td');
+    const perfText = outerCells.length > 0
+      ? $(outerCells[outerCells.length - 1]).text().trim()
+      : '';
+    const performance = parseInt(perfText) || undefined;
 
     // ═══════════════════════════════════════════════════════════════════════
     // ROWS 1-N: ROUND RESULTS (13 cells standard, 4 cells for byes)
@@ -197,6 +209,7 @@ export function parseResults(
       ranking,
       results,
       currentPoints,
+      tiebreak,
       buchholz,
       performance,
       validated: new Array(results.length).fill(false),

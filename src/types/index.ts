@@ -21,8 +21,9 @@ export interface Player {
   club: string;
   results: Result[]; // Par ronde
   currentPoints: number;
-  buchholz?: number;   // Ronde en cours seulement
-  performance?: number; // Ronde en cours seulement
+  tiebreak?: number;    // Tr. (Tronqué) - FFE tiebreaker
+  buchholz?: number;    // Buchholz score
+  performance?: number; // Performance rating
   ranking: number;      // Classement tournoi complet
   validated: boolean[]; // Une par ronde
 }
