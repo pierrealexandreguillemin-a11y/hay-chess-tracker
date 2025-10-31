@@ -34,3 +34,15 @@ dist-ssr
 
 # Test coverage
 coverage
+
+# Vercel deployment
+.vercel
+
+# Analysis and debug scripts
+analyze-*.cjs
+check-*.cjs
+ffe-*.html
+ffe-*.txt
+test-*.cjs
+fetch-*.cjs
+debug-*.cjs
