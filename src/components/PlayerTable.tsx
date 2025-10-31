@@ -69,6 +69,14 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
 
   const maxRounds = Math.max(...tournament.players.map(p => p.results.length), 0);
 
+  // Calculate club totals per round
+  const clubTotalsPerRound = Array.from({ length: maxRounds }, (_, roundIndex) => {
+    return tournament.players.reduce((sum, player) => {
+      const result = player.results[roundIndex];
+      return sum + (result?.score || 0);
+    }, 0);
+  });
+
   return (
     <Card className="miami-card overflow-hidden">
       <div className="overflow-x-auto">
@@ -86,7 +94,20 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
               <TableHead className="text-center font-bold">Buch.</TableHead>
               <TableHead className="text-center font-bold">Perf.</TableHead>
               <TableHead className="text-center font-bold">Class.</TableHead>
-              <TableHead className="text-center font-bold">Valid.</TableHead>
+            </TableRow>
+            {/* Club Totals Row */}
+            <TableRow className="bg-muted/50">
+              <TableHead className="font-semibold text-miami-navy">Total Club</TableHead>
+              <TableHead></TableHead>
+              {clubTotalsPerRound.map((total, i) => (
+                <TableHead key={i} className="text-center font-bold text-miami-aqua">
+                  {total > 0 ? `${total}pts` : '-'}
+                </TableHead>
+              ))}
+              <TableHead></TableHead>
+              <TableHead></TableHead>
+              <TableHead></TableHead>
+              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -95,18 +116,36 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
                 <TableCell className="font-medium">{player.name}</TableCell>
                 <TableCell className="text-center">{player.elo}</TableCell>
 
-                {/* Round Results */}
+                {/* Round Results with Validation */}
                 {Array.from({ length: maxRounds }, (_, i) => {
                   const result = player.results[i];
+                  const round = i + 1;
+                  const isValidated = validationState[player.name]?.[round] || false;
+
                   return (
                     <TableCell key={i} className="text-center">
-                      {result ? (
-                        <span className="font-medium">
-                          {getScoreDisplay(result.score)}
-                        </span>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
+                      <div className="flex items-center justify-center gap-2">
+                        {result ? (
+                          <>
+                            <span className="font-medium">
+                              {getScoreDisplay(result.score)}
+                            </span>
+                            <Checkbox
+                              checked={isValidated}
+                              onCheckedChange={(checked) =>
+                                handleValidationChange(
+                                  player.name,
+                                  round,
+                                  checked as boolean
+                                )
+                              }
+                              title={`Valider R${round} pour ${player.name}`}
+                            />
+                          </>
+                        ) : (
+                          <span className="text-muted-foreground">-</span>
+                        )}
+                      </div>
                     </TableCell>
                   );
                 })}
@@ -125,32 +164,6 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
 
                 <TableCell className="text-center">
                   <Badge variant="outline">{player.ranking}</Badge>
-                </TableCell>
-
-                {/* Validation Checkboxes */}
-                <TableCell className="text-center">
-                  <div className="flex gap-1 justify-center">
-                    {player.results.map((_, roundIndex) => {
-                      const round = roundIndex + 1;
-                      const isValidated =
-                        validationState[player.name]?.[round] || false;
-
-                      return (
-                        <Checkbox
-                          key={round}
-                          checked={isValidated}
-                          onCheckedChange={(checked) =>
-                            handleValidationChange(
-                              player.name,
-                              round,
-                              checked as boolean
-                            )
-                          }
-                          title={`Valider ronde ${round} pour ${player.name}`}
-                        />
-                      );
-                    })}
-                  </div>
                 </TableCell>
               </TableRow>
             ))}
