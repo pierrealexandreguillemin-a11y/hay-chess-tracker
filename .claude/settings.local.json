@@ -40,7 +40,10 @@
       "Bash(node test-new-parser.cjs:*)",
       "Bash(node debug-cells.cjs:*)",
       "Bash(node:*)",
-      "Bash(tee:*)"
+      "Bash(tee:*)",
+      "Bash(echo:*)",
+      "Bash(\"C:/Dev/hay-chess-tracker/src/styles/globals.css\")",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": []

@@ -233,9 +233,24 @@ SUB-TABLE ROW 0 (Header - 11 cells):
 │  [6] │ Federation  │ "FRA"            │ -           │
 │  [7] │ League      │ "PAC"            │ -           │
 │  [8] │ ✅ Points   │ "5" / "4½"       │ parsePoints │
-│  [9] │ ✅ Buchholz │ "32½"            │ parseFloat  │
-│ [10] │ ✅ Perf     │ "39"             │ parseInt    │
+│  [9] │ Tr.         │ "32½" (Tronqué)  │ - (ignored) │
+│ [10] │ ✅ Buchholz │ "39"             │ parseFloat  │
 └──────┴─────────────┴──────────────────┴─────────────┘
+
+⚠️ IMPORTANT: Performance N'EXISTE PAS dans le sub-table!
+   Elle apparaît dans le tableau externe (outer display row).
+
+   EXTRACTION PERFORMANCE:
+   1. Trouver le <td> parent qui contient div.papi_joueur_box
+   2. Prendre tous les <td> siblings suivants (nextAll)
+   3. Performance = Cell[16] dans ces siblings
+
+   Structure des cells suivantes:
+   [0-12]: Elo, Cat, Fed, Ligue, R1-R9
+   [13]: Pts (avec <b>)
+   [14]: Tr. (Tronqué)
+   [15]: Bu. (Buchholz)
+   [16]: Perf (Performance) ← EXTRAIRE ICI
 
 SUB-TABLE ROWS 1-N (Rounds - 13 cells):
 ┌──────┬──────────────┬──────────────────┬────────────┐
@@ -259,8 +274,9 @@ ATTENDU:
   - Ranking: 27
   - Elo: 1468
   - Points: 5
-  - Buchholz: 32½
-  - Performance: 39
+  - Tr.: 32½ (Tronqué - ignored)
+  - Buchholz: 39
+  - Performance: N/A (pas dans sub-table)
   - R1: Score=0, Opponent=BICAIS Noam
   - R2: Score=1, Opponent=BOUDEFLA Acil
 
@@ -268,8 +284,9 @@ RÉSULTAT PARSING:
   ✅ Cell[1]: "27" → ranking=27
   ✅ Cell[4]: "1468 F" → elo=1468
   ✅ Cell[8]: "5" → currentPoints=5
-  ✅ Cell[9]: "32½" → buchholz=32.5
-  ✅ Cell[10]: "39" → performance=39
+  ⚠️  Cell[9]: "32½" → Tr. (ignored)
+  ✅ Cell[10]: "39" → buchholz=39
+  ✅ Outer Cell[16]: "1554" → performance=1554
   ✅ R1 Cell[0]: "1", Cell[2]: "0", Cell[5]: "BICAIS Noam"
   ✅ R2 Cell[0]: "2", Cell[2]: "1", Cell[5]: "BOUDEFLA Acil"
 

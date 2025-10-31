@@ -146,18 +146,24 @@ export function parseResults(
     const infoRow = allRows.first();
     const infoCells = infoRow.find('td');
 
-    // Verified indices from FFE-PARSER-REFERENCE.md
+    // Verified indices from real FFE HTML analysis
     const ranking = parseInt($(infoCells[1]).text().trim()) || 0;      // Cell[1]
     const elo = parseElo($(infoCells[4]).text().trim());              // Cell[4]
     const currentPoints = parsePoints($(infoCells[8]).text().trim()); // Cell[8]
 
-    // Buchholz and Performance with HTML entity handling
-    const buchText = $(infoCells[9]).text().trim()                    // Cell[9]
+    // Cell[9] = Tr. (Tronqué/Tiebreak) - ignored for now
+    // Cell[10] = Buchholz with HTML entity handling
+    const buchText = $(infoCells[10]).text().trim()                   // Cell[10]
       .replace('½', '.5')
       .replace('&frac12;', '.5');
     const buchholz = parseFloat(buchText) || undefined;
 
-    const perfText = $(infoCells[10]).text().trim();                  // Cell[10]
+    // Performance is in outer display row
+    // It's the cell at index 16 after papi_joueur_box td (Pts=13, Tr=14, Bu=15, Perf=16)
+    const parentTd = playerDiv.closest('td');
+    const followingCells = parentTd.nextAll('td');
+    const perfCell = followingCells.eq(16);
+    const perfText = perfCell.text().trim();
     const performance = perfText ? parseInt(perfText) : undefined;
 
     // ═══════════════════════════════════════════════════════════════════════
