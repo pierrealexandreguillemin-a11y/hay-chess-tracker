@@ -45,7 +45,8 @@
       "Bash(\"C:/Dev/hay-chess-tracker/src/styles/globals.css\")",
       "Bash(grep:*)",
       "Bash(FFE-PARSER-REFERENCE.md)",
-      "Bash(npx shadcn@latest add:*)"
+      "Bash(npx shadcn@latest add:*)",
+      "Bash(ls:*)"
     ],
     "deny": [],
     "ask": []

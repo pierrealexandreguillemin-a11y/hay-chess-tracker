@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import EventForm from '@/components/EventForm';
 import TournamentTabs from '@/components/TournamentTabs';
 import EventsManager from '@/components/EventsManager';
+import ShareButton from '@/components/ShareButton';
 import HalftoneWaves from '@/components/HalftoneWaves';
 import BackgroundPaths from '@/components/BackgroundPaths';
 import FloatingParticles from '@/components/common/FloatingParticles';
@@ -55,11 +56,14 @@ function App() {
                 </p>
               )}
             </div>
-            <EventsManager
-              currentEventId={currentEvent?.id || ''}
-              onEventChange={handleEventChange}
-              onNewEventClick={() => setShowEventForm(true)}
-            />
+            <div className="flex items-center gap-2">
+              <ShareButton />
+              <EventsManager
+                currentEventId={currentEvent?.id || ''}
+                onEventChange={handleEventChange}
+                onNewEventClick={() => setShowEventForm(true)}
+              />
+            </div>
           </div>
           </div>
         </header>
