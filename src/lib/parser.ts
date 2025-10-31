@@ -123,82 +123,68 @@ export function parseResults(
   const $ = cheerio.load(htmlResults);
   const players: Player[] = [];
 
-  // FFE structure: Each player is in a <tr> that CONTAINS <div class="papi_joueur_box">
-  // This filters out sub-table rows which don't have the div
+  // FFE structure: Each player row contains a div.papi_joueur_box with nested sub-table
+  // See FFE-PARSER-REFERENCE.md for complete documentation
   $('tr').filter((_, row) => {
     return $(row).find('div.papi_joueur_box').length > 0;
   }).each((_, row) => {
-    const cells = $(row).find('> td');
-    if (cells.length < 3) return;
-
-    // cells[0] = Ranking (Pl)
-    const ranking = parseInt($(cells[0]).text().trim()) || 0;
-
-    // cells[2] contains the player div
-    const playerDiv = $(cells[2]).find('div.papi_joueur_box');
-
-    // Player name is in <b> tag
+    // Extract player name and filter by club
+    const playerDiv = $(row).find('div.papi_joueur_box');
     const nameRaw = playerDiv.find('b').first().text().trim();
     const name = cleanPlayerName(nameRaw);
 
-    // Get club from map
     const club = playerClubMap.get(name) || '';
+    if (club !== CLUB_NAME) return; // 🎯 FILTER: Keep only target club
 
-    // 🎯 FILTER: Keep only target club
-    if (club !== CLUB_NAME) return;
-
-    // Inside playerDiv, there's a sub-table with player info
+    // Access sub-table structure (the ONLY reliable data source)
     const subTable = playerDiv.find('table').first();
-    const infoRow = subTable.find('tr').first(); // First row has: Pl, Nom, Elo, Points, Buchholz
+    const allRows = subTable.find('tr');
+
+    // ═══════════════════════════════════════════════════════════════════════
+    // ROW 0: PLAYER HEADER (11 cells - FIXED indices)
+    // ═══════════════════════════════════════════════════════════════════════
+    const infoRow = allRows.first();
     const infoCells = infoRow.find('td');
 
-    // Parse info from sub-table first row
-    // Structure: [colspan=3], Pl, empty, Nom, Elo, Cat, Fede, Ligue, Points, Buchholz, Perf
-    let elo = 0;
-    let currentPoints = 0;
-    let buchholz: number | undefined;
-    let performance: number | undefined;
+    // Verified indices from FFE-PARSER-REFERENCE.md
+    const ranking = parseInt($(infoCells[1]).text().trim()) || 0;      // Cell[1]
+    const elo = parseElo($(infoCells[4]).text().trim());              // Cell[4]
+    const currentPoints = parsePoints($(infoCells[8]).text().trim()); // Cell[8]
 
-    infoCells.each((_, cell) => {
-      const text = $(cell).text().trim();
+    // Buchholz and Performance with HTML entity handling
+    const buchText = $(infoCells[9]).text().trim()                    // Cell[9]
+      .replace('½', '.5')
+      .replace('&frac12;', '.5');
+    const buchholz = parseFloat(buchText) || undefined;
 
-      // Find Elo (format: "1468 F")
-      if (/^\d{3,4}\s*[FEN]?$/.test(text)) {
-        elo = parseElo(text);
-      }
+    const perfText = $(infoCells[10]).text().trim();                  // Cell[10]
+    const performance = perfText ? parseInt(perfText) : undefined;
 
-      // Points are usually near the end (format: "5" or "4½")
-      if (/^\d+[½⁄₂]?$/.test(text) && !performance) {
-        const parsed = parsePoints(text);
-        if (parsed < 20) { // Distinguish from Buchholz
-          currentPoints = parsed;
-        } else if (!buchholz) {
-          buchholz = parsed;
-        }
-      }
-    });
-
-    // Parse round results from subsequent rows in sub-table
+    // ═══════════════════════════════════════════════════════════════════════
+    // ROWS 1-N: ROUND RESULTS (13 cells standard, 4 cells for byes)
+    // ═══════════════════════════════════════════════════════════════════════
     const results: Result[] = [];
-    subTable.find('tr').slice(1).each((roundIndex, resultRow) => {
+    allRows.slice(1).each((_, resultRow) => {
       const resultCells = $(resultRow).find('td');
-      if (resultCells.length < 3) return;
 
-      // Structure: Round#, Color (B/N), Score (0/1), OpponentPl, empty, OpponentName, ...
-      const roundNum = roundIndex + 1;
-      const scoreText = $(resultCells[2]).text().trim();
+      // Skip bye/exempt rows (only 4 cells instead of 13)
+      if (resultCells.length < 6) return;
 
+      // Verified indices from FFE-PARSER-REFERENCE.md
+      const roundNum = parseInt($(resultCells[0]).text().trim()) || 0; // Cell[0]
+      const scoreText = $(resultCells[2]).text().trim();                // Cell[2]
+      const opponentName = $(resultCells[5]).text().trim();             // Cell[5]
+
+      // Parse score with HTML entity handling
       let score: 0 | 0.5 | 1 = 0;
       if (scoreText === '1') score = 1;
-      else if (scoreText === '½' || scoreText === '0.5') score = 0.5;
+      else if (scoreText === '½' || scoreText === '0.5' || scoreText === '&frac12;') score = 0.5;
       else score = 0;
-
-      const opponentPl = $(resultCells[3]).text().trim();
 
       results.push({
         round: roundNum,
         score,
-        opponent: opponentPl || undefined,
+        opponent: opponentName || undefined,
       });
     });
 
