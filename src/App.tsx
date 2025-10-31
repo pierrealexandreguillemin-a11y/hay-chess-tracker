@@ -21,7 +21,9 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-miami-navy via-miami-aqua to-miami-orange p-4 md:p-8 relative overflow-hidden">
+    <div className="min-h-screen p-4 md:p-8 relative overflow-hidden" style={{
+      background: 'linear-gradient(135deg, #008E97 0%, #013369 25%, #013369 75%, #008E97 100%)'
+    }}>
       {/* Miami Background Effects */}
       <HalftoneWaves />
       <BackgroundPaths />
@@ -29,7 +31,13 @@ function App() {
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <header className="mb-6">
-          <div className="miami-glass-foreground rounded-lg p-6">
+          <div className="rounded-lg p-6" style={{
+            background: 'rgba(255, 255, 255, 0.12)',
+            backdropFilter: 'blur(15px) saturate(130%)',
+            WebkitBackdropFilter: 'blur(15px) saturate(130%)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 16px rgba(0,0,0,0.15)'
+          }}>
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-miami-aqua to-miami-navy bg-clip-text text-transparent">
@@ -65,7 +73,13 @@ function App() {
 
         {/* Empty State */}
         {!currentEvent && !showEventForm && (
-          <div className="miami-glass-foreground rounded-lg p-12 text-center">
+          <div className="rounded-lg p-12 text-center" style={{
+            background: 'rgba(255, 255, 255, 0.12)',
+            backdropFilter: 'blur(15px) saturate(130%)',
+            WebkitBackdropFilter: 'blur(15px) saturate(130%)',
+            border: '1px solid rgba(255, 255, 255, 0.18)',
+            boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.25), 0 4px 16px rgba(0,0,0,0.15)'
+          }}>
             <h2 className="text-xl font-semibold mb-2">
               Aucun événement actif
             </h2>
