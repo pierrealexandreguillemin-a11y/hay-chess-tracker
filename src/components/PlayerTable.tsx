@@ -79,18 +79,6 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
 
   return (
     <Card className="miami-card overflow-hidden">
-      {/* Club Totals - Above Table */}
-      <div className="px-6 py-2 bg-gradient-to-r from-miami-aqua/10 to-miami-navy/10 border-b border-miami-aqua/20">
-        <div className="flex items-center gap-3 text-sm">
-          <span className="font-semibold text-miami-navy">Total:</span>
-          {clubTotalsPerRound.map((total, i) => (
-            <span key={i} className="font-bold text-miami-aqua">
-              {total > 0 ? total : '-'}
-            </span>
-          ))}
-        </div>
-      </div>
-
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -106,10 +94,26 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
               <TableHead className="text-center font-bold">Buch.</TableHead>
               <TableHead className="text-center font-bold">Class.</TableHead>
             </TableRow>
+            {/* Club Totals Row - Aligned with columns */}
+            <TableRow className="bg-gradient-to-r from-miami-aqua/10 to-miami-navy/10 border-b-2 border-miami-aqua/30">
+              <TableHead className="font-bold text-miami-navy">Total Club</TableHead>
+              <TableHead className="text-center">-</TableHead>
+              {clubTotalsPerRound.map((total, i) => (
+                <TableHead key={i} className="text-center font-bold text-miami-aqua">
+                  {total > 0 ? total : '-'}
+                </TableHead>
+              ))}
+              <TableHead className="text-center">-</TableHead>
+              <TableHead className="text-center">-</TableHead>
+              <TableHead className="text-center">-</TableHead>
+            </TableRow>
           </TableHeader>
           <TableBody>
-            {tournament.players.map((player) => (
-              <TableRow key={player.name}>
+            {tournament.players.map((player, playerIndex) => (
+              <TableRow
+                key={player.name}
+                className={playerIndex % 2 === 0 ? 'bg-white/50' : 'bg-miami-aqua/5'}
+              >
                 <TableCell className="font-medium">{player.name}</TableCell>
                 <TableCell className="text-center">{player.elo}</TableCell>
 
