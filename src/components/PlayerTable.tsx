@@ -79,6 +79,23 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
 
   return (
     <Card className="miami-card overflow-hidden">
+      {/* Club Totals - Above Table */}
+      <div className="px-6 py-3 bg-gradient-to-r from-miami-aqua/10 to-miami-navy/10 border-b border-miami-aqua/20">
+        <div className="grid grid-cols-[auto_1fr] gap-4 items-center">
+          <span className="font-bold text-miami-navy whitespace-nowrap">Total Club:</span>
+          <div className="flex gap-8">
+            {clubTotalsPerRound.map((total, i) => (
+              <div key={i} className="flex flex-col items-center min-w-[3rem]">
+                <span className="text-xs text-miami-navy/60">R{i + 1}</span>
+                <span className="font-bold text-miami-aqua">
+                  {total > 0 ? total : '-'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -95,21 +112,6 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
               <TableHead className="text-center font-bold">Buch.</TableHead>
               <TableHead className="text-center font-bold">Perf</TableHead>
               <TableHead className="text-center font-bold">Class.</TableHead>
-            </TableRow>
-            {/* Club Totals Row - Aligned with columns */}
-            <TableRow className="bg-gradient-to-r from-miami-aqua/10 to-miami-navy/10 border-b-2 border-miami-aqua/30">
-              <TableHead className="font-bold text-miami-navy">Total Club</TableHead>
-              <TableHead className="text-center">-</TableHead>
-              {clubTotalsPerRound.map((total, i) => (
-                <TableHead key={i} className="text-center font-bold text-miami-aqua">
-                  {total > 0 ? total : '-'}
-                </TableHead>
-              ))}
-              <TableHead className="text-center">-</TableHead>
-              <TableHead className="text-center">-</TableHead>
-              <TableHead className="text-center">-</TableHead>
-              <TableHead className="text-center">-</TableHead>
-              <TableHead className="text-center">-</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
