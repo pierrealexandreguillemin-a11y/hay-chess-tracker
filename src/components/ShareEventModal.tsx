@@ -81,7 +81,7 @@ export default function ShareEventModal({ eventId, eventName, trigger }: ShareEv
                 value={shareData.url}
                 size={200}
                 level="M"
-                includeMargin
+                includeMargin={true}
               />
               <p className="text-xs text-center text-miami-navy/60">
                 Scannez ce QR code pour importer l'événement

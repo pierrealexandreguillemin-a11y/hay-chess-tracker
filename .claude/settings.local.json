@@ -46,7 +46,8 @@
       "Bash(grep:*)",
       "Bash(FFE-PARSER-REFERENCE.md)",
       "Bash(npx shadcn@latest add:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(npm uninstall:*)"
     ],
     "deny": [],
     "ask": []
