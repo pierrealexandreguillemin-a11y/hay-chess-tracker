@@ -80,19 +80,14 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
   return (
     <Card className="miami-card overflow-hidden">
       {/* Club Totals - Above Table */}
-      <div className="px-6 py-3 bg-gradient-to-r from-miami-aqua/10 to-miami-navy/10 border-b border-miami-aqua/20">
-        <div className="flex items-center gap-4">
-          <span className="font-bold text-miami-navy">Total Club:</span>
-          <div className="flex gap-6">
-            {clubTotalsPerRound.map((total, i) => (
-              <div key={i} className="flex items-center gap-2">
-                <span className="text-sm font-medium text-muted-foreground">R{i + 1}:</span>
-                <span className="font-bold text-miami-aqua">
-                  {total > 0 ? `${total}pts` : '-'}
-                </span>
-              </div>
-            ))}
-          </div>
+      <div className="px-6 py-2 bg-gradient-to-r from-miami-aqua/10 to-miami-navy/10 border-b border-miami-aqua/20">
+        <div className="flex items-center gap-3 text-sm">
+          <span className="font-semibold text-miami-navy">Total:</span>
+          {clubTotalsPerRound.map((total, i) => (
+            <span key={i} className="font-bold text-miami-aqua">
+              {total > 0 ? total : '-'}
+            </span>
+          ))}
         </div>
       </div>
 
