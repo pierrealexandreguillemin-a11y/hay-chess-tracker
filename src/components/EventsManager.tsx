@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Trash2, CheckCircle2 } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { Trash2, CheckCircle2, Download, Upload, Share2 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   Dialog,
   DialogContent,
@@ -21,7 +22,17 @@ import {
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { getAllEvents, setCurrentEvent, deleteEvent } from '@/lib/storage';
+import {
+  getAllEvents,
+  setCurrentEvent,
+  deleteEvent,
+  exportEvent,
+  importEvent,
+  checkEventExists,
+  type ExportedEvent,
+} from '@/lib/storage';
+import DuplicateEventDialog from '@/components/DuplicateEventDialog';
+import ShareEventModal from '@/components/ShareEventModal';
 import type { Event } from '@/types';
 
 interface EventsManagerProps {
@@ -34,6 +45,9 @@ export default function EventsManager({ currentEventId, onEventChange, onNewEven
   const [open, setOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [pendingImport, setPendingImport] = useState<ExportedEvent | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const events = getAllEvents();
 
   const handleSwitchEvent = (eventId: string) => {
@@ -63,6 +77,104 @@ export default function EventsManager({ currentEventId, onEventChange, onNewEven
     }
   };
 
+  const handleExportEvent = (eventId: string) => {
+    const exportedData = exportEvent(eventId);
+    if (!exportedData) {
+      toast.error('Erreur lors de l\'export de l\'événement');
+      return;
+    }
+
+    // Create download
+    const blob = new Blob([JSON.stringify(exportedData, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${exportedData.event.name.replace(/\s+/g, '-')}-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    toast.success('Événement exporté avec succès !');
+  };
+
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const exportedData = JSON.parse(text) as ExportedEvent;
+
+      // Validate structure
+      if (!exportedData.version || !exportedData.event) {
+        toast.error('Format de fichier invalide');
+        return;
+      }
+
+      // Check for duplicates
+      const isDuplicate = checkEventExists(exportedData.event.id);
+
+      if (isDuplicate) {
+        setPendingImport(exportedData);
+        setDuplicateDialogOpen(true);
+      } else {
+        // Import directly
+        const result = importEvent(exportedData);
+        if (result.success) {
+          toast.success(`Événement "${exportedData.event.name}" importé avec succès !`);
+          onEventChange();
+        } else {
+          toast.error('Erreur lors de l\'import');
+        }
+      }
+    } catch (error) {
+      console.error('Import error:', error);
+      toast.error('Erreur lors de la lecture du fichier');
+    } finally {
+      // Reset input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
+
+  const handleDuplicateReplace = () => {
+    if (!pendingImport) return;
+
+    const result = importEvent(pendingImport, { replaceIfExists: true });
+    if (result.success) {
+      toast.success(`Événement "${pendingImport.event.name}" remplacé avec succès !`);
+      onEventChange();
+    }
+
+    setDuplicateDialogOpen(false);
+    setPendingImport(null);
+  };
+
+  const handleDuplicateKeepBoth = () => {
+    if (!pendingImport) return;
+
+    const result = importEvent(pendingImport, { replaceIfExists: false, generateNewId: true });
+    if (result.success) {
+      toast.success(`Copie de "${pendingImport.event.name}" créée avec succès !`);
+      onEventChange();
+    }
+
+    setDuplicateDialogOpen(false);
+    setPendingImport(null);
+  };
+
+  const handleDuplicateCancel = () => {
+    setDuplicateDialogOpen(false);
+    setPendingImport(null);
+    toast.info('Import annulé');
+  };
+
   return (
     <>
       <Dialog open={open} onOpenChange={setOpen}>
@@ -73,7 +185,7 @@ export default function EventsManager({ currentEventId, onEventChange, onNewEven
         </DialogTrigger>
         <DialogContent className="sm:max-w-[600px] miami-card border-miami-aqua/30">
           <DialogHeader>
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between mb-4">
               <div>
                 <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-miami-aqua to-miami-navy bg-clip-text text-transparent">
                   Événements
@@ -82,17 +194,37 @@ export default function EventsManager({ currentEventId, onEventChange, onNewEven
                   Sélectionnez un événement ou supprimez ceux que vous ne souhaitez plus suivre.
                 </DialogDescription>
               </div>
-              <Button
-                variant="miami"
-                onClick={() => {
-                  setOpen(false);
-                  onNewEventClick();
-                }}
-              >
-                Nouvel événement
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={handleImportClick}
+                  className="miami-glass-foreground border-miami-aqua/30 hover:bg-miami-aqua/10"
+                  title="Importer un événement"
+                >
+                  <Upload className="w-4 h-4" />
+                </Button>
+                <Button
+                  variant="miami"
+                  onClick={() => {
+                    setOpen(false);
+                    onNewEventClick();
+                  }}
+                >
+                  Nouvel événement
+                </Button>
+              </div>
             </div>
           </DialogHeader>
+
+          {/* Hidden file input */}
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            onChange={handleFileChange}
+            className="hidden"
+          />
 
           <div className="space-y-3 max-h-[400px] overflow-y-auto">
             {events.length === 0 ? (
@@ -130,17 +262,47 @@ export default function EventsManager({ currentEventId, onEventChange, onNewEven
                           </div>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(event.id);
-                        }}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                      <div className="flex gap-1">
+                        <div onClick={(e) => e.stopPropagation()}>
+                          <ShareEventModal
+                            eventId={event.id}
+                            eventName={event.name}
+                            trigger={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="text-miami-navy hover:text-miami-navy/80 hover:bg-miami-navy/10"
+                                title="Partager avec QR code"
+                              >
+                                <Share2 className="w-4 h-4" />
+                              </Button>
+                            }
+                          />
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-miami-aqua hover:text-miami-aqua/80 hover:bg-miami-aqua/10"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleExportEvent(event.id);
+                          }}
+                          title="Exporter cet événement"
+                        >
+                          <Download className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(event.id);
+                          }}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </div>
                   </Card>
                 );
@@ -172,6 +334,15 @@ export default function EventsManager({ currentEventId, onEventChange, onNewEven
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Duplicate Event Dialog */}
+      <DuplicateEventDialog
+        open={duplicateDialogOpen}
+        eventName={pendingImport?.event.name || ''}
+        onReplace={handleDuplicateReplace}
+        onKeepBoth={handleDuplicateKeepBoth}
+        onCancel={handleDuplicateCancel}
+      />
     </>
   );
 }

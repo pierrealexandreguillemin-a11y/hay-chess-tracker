@@ -1,4 +1,5 @@
 import type { Event, StorageData, ValidationState } from '@/types';
+import { compressToEncodedURIComponent, decompressFromEncodedURIComponent } from 'lz-string';
 
 const STORAGE_KEY = 'hay-chess-tracker';
 
@@ -157,6 +158,180 @@ export function importData(jsonString: string): boolean {
     console.error('Error importing data:', error);
     return false;
   }
+}
+
+// ========================================
+// EXPORT/IMPORT SINGLE EVENT
+// ========================================
+
+export interface ExportedEvent {
+  version: '1.0';
+  exportDate: string;
+  event: Event;
+  validations: ValidationState;
+}
+
+/**
+ * Export a single event as JSON (for sharing)
+ */
+export function exportEvent(eventId: string): ExportedEvent | null {
+  const data = getStorageData();
+  const event = data.events.find(e => e.id === eventId);
+
+  if (!event) return null;
+
+  // Get validations for all tournaments in this event
+  const eventValidations: ValidationState = {};
+  event.tournaments.forEach(tournament => {
+    if (data.validations[tournament.id]) {
+      eventValidations[tournament.id] = data.validations[tournament.id];
+    }
+  });
+
+  return {
+    version: '1.0',
+    exportDate: new Date().toISOString(),
+    event,
+    validations: eventValidations,
+  };
+}
+
+/**
+ * Check if an imported event already exists
+ */
+export function checkEventExists(eventId: string): boolean {
+  const data = getStorageData();
+  return data.events.some(e => e.id === eventId);
+}
+
+/**
+ * Import a single event (with duplicate handling)
+ */
+export function importEvent(
+  exportedData: ExportedEvent,
+  options: {
+    replaceIfExists: boolean;
+    generateNewId?: boolean;
+  } = { replaceIfExists: false }
+): { success: boolean; eventId: string; isDuplicate: boolean } {
+  try {
+    const data = getStorageData();
+    const { event, validations } = exportedData;
+
+    // Check if event already exists
+    const existingIndex = data.events.findIndex(e => e.id === event.id);
+    const isDuplicate = existingIndex >= 0;
+
+    let finalEvent = { ...event };
+
+    if (isDuplicate) {
+      if (options.replaceIfExists) {
+        // Replace existing event
+        data.events[existingIndex] = finalEvent;
+      } else if (options.generateNewId) {
+        // Create new event with new ID
+        finalEvent = {
+          ...event,
+          id: `event_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          name: `${event.name} (copie)`,
+          tournaments: event.tournaments.map(t => ({
+            ...t,
+            id: `tournament_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+          })),
+        };
+        data.events.push(finalEvent);
+      } else {
+        // User cancelled
+        return { success: false, eventId: event.id, isDuplicate: true };
+      }
+    } else {
+      // New event, just add it
+      data.events.push(finalEvent);
+    }
+
+    // Import validations
+    Object.entries(validations).forEach(([tournamentId, tournamentValidations]) => {
+      // If we generated new IDs, we need to map old tournament IDs to new ones
+      if (options.generateNewId && isDuplicate) {
+        // Find the corresponding new tournament ID
+        const oldTournamentIndex = event.tournaments.findIndex(t => t.id === tournamentId);
+        if (oldTournamentIndex >= 0 && finalEvent.tournaments[oldTournamentIndex]) {
+          const newTournamentId = finalEvent.tournaments[oldTournamentIndex].id;
+          data.validations[newTournamentId] = tournamentValidations;
+        }
+      } else {
+        data.validations[tournamentId] = tournamentValidations;
+      }
+    });
+
+    // Set as current event
+    data.currentEventId = finalEvent.id;
+    setStorageData(data);
+
+    return { success: true, eventId: finalEvent.id, isDuplicate };
+  } catch (error) {
+    console.error('Error importing event:', error);
+    return { success: false, eventId: '', isDuplicate: false };
+  }
+}
+
+// ========================================
+// URL SHARING WITH COMPRESSION
+// ========================================
+
+/**
+ * Encode event to compressed URL parameter
+ */
+export function encodeEventToURL(eventId: string): string | null {
+  const exportedData = exportEvent(eventId);
+  if (!exportedData) return null;
+
+  try {
+    const json = JSON.stringify(exportedData);
+    const compressed = compressToEncodedURIComponent(json);
+    return compressed;
+  } catch (error) {
+    console.error('Error encoding event to URL:', error);
+    return null;
+  }
+}
+
+/**
+ * Decode event from URL parameter
+ */
+export function decodeEventFromURL(compressed: string): ExportedEvent | null {
+  try {
+    const json = decompressFromEncodedURIComponent(compressed);
+    if (!json) return null;
+
+    const exportedData = JSON.parse(json) as ExportedEvent;
+
+    // Validate structure
+    if (!exportedData.version || !exportedData.event) {
+      return null;
+    }
+
+    return exportedData;
+  } catch (error) {
+    console.error('Error decoding event from URL:', error);
+    return null;
+  }
+}
+
+/**
+ * Generate shareable URL for an event
+ */
+export function generateShareURL(eventId: string): { url: string; size: number } | null {
+  const encoded = encodeEventToURL(eventId);
+  if (!encoded) return null;
+
+  const baseURL = window.location.origin + window.location.pathname;
+  const url = `${baseURL}?share=${encoded}`;
+
+  return {
+    url,
+    size: url.length,
+  };
 }
 
 // ========================================
