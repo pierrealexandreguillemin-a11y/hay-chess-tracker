@@ -104,7 +104,6 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
               ))}
               <TableHead className="text-center font-bold">Pts</TableHead>
               <TableHead className="text-center font-bold">Buch.</TableHead>
-              <TableHead className="text-center font-bold">Perf.</TableHead>
               <TableHead className="text-center font-bold">Class.</TableHead>
             </TableRow>
           </TableHeader>
@@ -154,10 +153,6 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
 
                 <TableCell className="text-center">
                   {player.buchholz ? player.buchholz.toFixed(1) : '-'}
-                </TableCell>
-
-                <TableCell className="text-center">
-                  {player.performance || '-'}
                 </TableCell>
 
                 <TableCell className="text-center">

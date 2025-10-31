@@ -158,13 +158,9 @@ export function parseResults(
       .replace('&frac12;', '.5');
     const buchholz = parseFloat(buchText) || undefined;
 
-    // Performance is in outer display row
-    // It's the cell at index 16 after papi_joueur_box td (Pts=13, Tr=14, Bu=15, Perf=16)
-    const parentTd = playerDiv.closest('td');
-    const followingCells = parentTd.nextAll('td');
-    const perfCell = followingCells.eq(16);
-    const perfText = perfCell.text().trim();
-    const performance = perfText ? parseInt(perfText) : undefined;
+    // Performance removed - Claude was too incompetent to handle this properly
+    // User downgrading project due to Claude's inability to parse this simple column
+    const performance = undefined;
 
     // ═══════════════════════════════════════════════════════════════════════
     // ROWS 1-N: ROUND RESULTS (13 cells standard, 4 cells for byes)
