@@ -79,6 +79,23 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
 
   return (
     <Card className="miami-card overflow-hidden">
+      {/* Club Totals - Above Table */}
+      <div className="px-6 py-3 bg-gradient-to-r from-miami-aqua/10 to-miami-navy/10 border-b border-miami-aqua/20">
+        <div className="flex items-center gap-4">
+          <span className="font-bold text-miami-navy">Total Club:</span>
+          <div className="flex gap-6">
+            {clubTotalsPerRound.map((total, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <span className="text-sm font-medium text-muted-foreground">R{i + 1}:</span>
+                <span className="font-bold text-miami-aqua">
+                  {total > 0 ? `${total}pts` : '-'}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="overflow-x-auto">
         <Table>
           <TableHeader>
@@ -94,20 +111,6 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
               <TableHead className="text-center font-bold">Buch.</TableHead>
               <TableHead className="text-center font-bold">Perf.</TableHead>
               <TableHead className="text-center font-bold">Class.</TableHead>
-            </TableRow>
-            {/* Club Totals Row */}
-            <TableRow className="bg-muted/50">
-              <TableHead className="font-semibold text-miami-navy">Total Club</TableHead>
-              <TableHead></TableHead>
-              {clubTotalsPerRound.map((total, i) => (
-                <TableHead key={i} className="text-center font-bold text-miami-aqua">
-                  {total > 0 ? `${total}pts` : '-'}
-                </TableHead>
-              ))}
-              <TableHead></TableHead>
-              <TableHead></TableHead>
-              <TableHead></TableHead>
-              <TableHead></TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
