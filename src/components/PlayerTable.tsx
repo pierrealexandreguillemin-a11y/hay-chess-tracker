@@ -117,7 +117,7 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
             {tournament.players.map((player, playerIndex) => (
               <TableRow
                 key={player.name}
-                className={playerIndex % 2 === 0 ? 'bg-white/30' : 'bg-miami-aqua/5'}
+                className={playerIndex % 2 === 0 ? 'bg-white/10 hover:bg-white/10' : 'bg-miami-aqua/3 hover:bg-miami-aqua/3'}
               >
                 <TableCell className="font-medium">{player.name}</TableCell>
                 <TableCell className="text-center">{player.elo}</TableCell>
