@@ -6,7 +6,7 @@ import TournamentTabs from '@/components/TournamentTabs';
 import HalftoneWaves from '@/components/HalftoneWaves';
 import BackgroundPaths from '@/components/BackgroundPaths';
 import FloatingParticles from '@/components/common/FloatingParticles';
-import MiamiGlass from '@/components/common/MiamiGlass';
+// MiamiGlass removed - using .miami-glass-foreground class directly
 import type { Event } from '@/types';
 
 function App() {
@@ -29,7 +29,7 @@ function App() {
       <div className="max-w-7xl mx-auto relative z-10">
         {/* Header */}
         <header className="mb-6">
-          <MiamiGlass variant="foreground" className="rounded-lg p-6">
+          <div className="miami-glass-foreground rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-miami-aqua to-miami-navy bg-clip-text text-transparent">
@@ -48,7 +48,7 @@ function App() {
               {showEventForm ? 'Annuler' : 'Nouvel événement'}
             </Button>
           </div>
-          </MiamiGlass>
+          </div>
         </header>
 
         {/* Event Form */}
@@ -65,7 +65,7 @@ function App() {
 
         {/* Empty State */}
         {!currentEvent && !showEventForm && (
-          <MiamiGlass variant="foreground" className="rounded-lg p-12 text-center">
+          <div className="miami-glass-foreground rounded-lg p-12 text-center">
             <h2 className="text-xl font-semibold mb-2">
               Aucun événement actif
             </h2>
@@ -75,7 +75,7 @@ function App() {
             <Button variant="miami" onClick={() => setShowEventForm(true)}>
               Créer un événement
             </Button>
-          </MiamiGlass>
+          </div>
         )}
       </div>
     </div>
