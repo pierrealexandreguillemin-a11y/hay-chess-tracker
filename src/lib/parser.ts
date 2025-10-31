@@ -13,10 +13,49 @@ import type { Player, Result, ClubStats } from '@/types';
 const CLUB_NAME = 'Hay Chess';
 
 /**
- * Convert Action=Ga URL to Action=Ls URL
+ * Extract tournament ID from FFE URL
+ * Supports: FicheTournoi.aspx?Ref=68994 or Resultats.aspx URLs
  */
-export function getListUrl(resultsUrl: string): string {
-  return resultsUrl.replace('Action=Ga', 'Action=Ls');
+function extractTournamentId(url: string): string | null {
+  // FicheTournoi.aspx?Ref=68994
+  const ficheMatch = url.match(/FicheTournoi\.aspx\?Ref=(\d+)/);
+  if (ficheMatch) return ficheMatch[1];
+
+  // Resultats.aspx?URL=Tournois/Id/68994/68994
+  const resultsMatch = url.match(/Tournois\/Id\/(\d+)/);
+  if (resultsMatch) return resultsMatch[1];
+
+  return null;
+}
+
+/**
+ * Convert tournament URL to Action=Ls URL (player list with clubs)
+ * Handles both FicheTournoi.aspx and Resultats.aspx formats
+ */
+export function getListUrl(tournamentUrl: string): string {
+  const tournamentId = extractTournamentId(tournamentUrl);
+
+  if (!tournamentId) {
+    // Fallback: assume already correct format
+    return tournamentUrl.replace('Action=Ga', 'Action=Ls');
+  }
+
+  return `https://www.echecs.asso.fr/Resultats.aspx?URL=Tournois/Id/${tournamentId}/${tournamentId}&Action=Ls`;
+}
+
+/**
+ * Convert tournament URL to Action=Ga URL (results grid)
+ * Handles both FicheTournoi.aspx and Resultats.aspx formats
+ */
+export function getResultsUrl(tournamentUrl: string): string {
+  const tournamentId = extractTournamentId(tournamentUrl);
+
+  if (!tournamentId) {
+    // Fallback: assume already correct format
+    return tournamentUrl;
+  }
+
+  return `https://www.echecs.asso.fr/Resultats.aspx?URL=Tournois/Id/${tournamentId}/${tournamentId}&Action=Ga`;
 }
 
 /**

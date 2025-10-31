@@ -5,7 +5,7 @@ import ClubStats from '@/components/ClubStats';
 import PlayerTable from '@/components/PlayerTable';
 import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
-import { parseFFePages, getListUrl } from '@/lib/parser';
+import { parseFFePages, getListUrl, getResultsUrl } from '@/lib/parser';
 import { saveEvent } from '@/lib/storage';
 import type { Event, Tournament } from '@/types';
 
@@ -25,6 +25,7 @@ export default function TournamentTabs({ event, onEventUpdate }: TournamentTabsP
     try {
       // FFE requires 2 pages: List (Ls) for clubs + Results (Ga) for data
       const listUrl = getListUrl(tournament.url);
+      const resultsUrl = getResultsUrl(tournament.url);
 
       // Fetch both pages in parallel
       const [responseList, responseResults] = await Promise.all([
@@ -36,7 +37,7 @@ export default function TournamentTabs({ event, onEventUpdate }: TournamentTabsP
         fetch('/api/scrape', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: tournament.url }),
+          body: JSON.stringify({ url: resultsUrl }),
         }),
       ]);
 
