@@ -14,9 +14,10 @@ interface TournamentInput {
 
 interface EventFormProps {
   onEventCreated: (event: Event) => void;
+  onCancel?: () => void;
 }
 
-export default function EventForm({ onEventCreated }: EventFormProps) {
+export default function EventForm({ onEventCreated, onCancel }: EventFormProps) {
   const [eventName, setEventName] = useState('');
   const [tournaments, setTournaments] = useState<TournamentInput[]>([
     { name: '', url: '' },
@@ -179,6 +180,11 @@ export default function EventForm({ onEventCreated }: EventFormProps) {
 
           {/* Submit Button */}
           <div className="flex gap-2 justify-end">
+            {onCancel && (
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Annuler
+              </Button>
+            )}
             <Button type="submit" variant="miami">
               Créer l&apos;événement
             </Button>

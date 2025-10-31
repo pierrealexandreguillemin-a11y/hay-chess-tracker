@@ -27,9 +27,10 @@ import type { Event } from '@/types';
 interface EventsManagerProps {
   currentEventId: string;
   onEventChange: () => void;
+  onNewEventClick: () => void;
 }
 
-export default function EventsManager({ currentEventId, onEventChange }: EventsManagerProps) {
+export default function EventsManager({ currentEventId, onEventChange, onNewEventClick }: EventsManagerProps) {
   const [open, setOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [eventToDelete, setEventToDelete] = useState<string | null>(null);
@@ -72,12 +73,25 @@ export default function EventsManager({ currentEventId, onEventChange }: EventsM
         </DialogTrigger>
         <DialogContent className="sm:max-w-[600px] miami-card border-miami-aqua/30">
           <DialogHeader>
-            <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-miami-aqua to-miami-navy bg-clip-text text-transparent">
-              Événements
-            </DialogTitle>
-            <DialogDescription className="text-miami-navy/70">
-              Sélectionnez un événement ou supprimez ceux que vous ne souhaitez plus suivre.
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-miami-aqua to-miami-navy bg-clip-text text-transparent">
+                  Événements
+                </DialogTitle>
+                <DialogDescription className="text-miami-navy/70">
+                  Sélectionnez un événement ou supprimez ceux que vous ne souhaitez plus suivre.
+                </DialogDescription>
+              </div>
+              <Button
+                variant="miami"
+                onClick={() => {
+                  setOpen(false);
+                  onNewEventClick();
+                }}
+              >
+                Nouvel événement
+              </Button>
+            </div>
           </DialogHeader>
 
           <div className="space-y-3 max-h-[400px] overflow-y-auto">

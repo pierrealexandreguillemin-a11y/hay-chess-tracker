@@ -55,18 +55,11 @@ function App() {
                 </p>
               )}
             </div>
-            <div className="flex gap-3">
-              <EventsManager
-                currentEventId={currentEvent?.id || ''}
-                onEventChange={handleEventChange}
-              />
-              <Button
-                variant="miami"
-                onClick={() => setShowEventForm(!showEventForm)}
-              >
-                {showEventForm ? 'Annuler' : 'Nouvel événement'}
-              </Button>
-            </div>
+            <EventsManager
+              currentEventId={currentEvent?.id || ''}
+              onEventChange={handleEventChange}
+              onNewEventClick={() => setShowEventForm(true)}
+            />
           </div>
           </div>
         </header>
@@ -74,7 +67,10 @@ function App() {
         {/* Event Form */}
         {showEventForm && (
           <div className="mb-6">
-            <EventForm onEventCreated={handleEventCreated} />
+            <EventForm
+              onEventCreated={handleEventCreated}
+              onCancel={() => setShowEventForm(false)}
+            />
           </div>
         )}
 
