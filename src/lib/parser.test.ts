@@ -23,6 +23,7 @@ describe('parser.ts', () => {
         <table>
           <tr>
             <td>1</td>
+            <td>&nbsp;</td>
             <td>BACHKAT  Fares</td>
             <td>1541</td>
             <td></td>
@@ -32,6 +33,7 @@ describe('parser.ts', () => {
           </tr>
           <tr>
             <td>2</td>
+            <td>&nbsp;</td>
             <td>DUPONT Jean</td>
             <td>1600</td>
             <td></td>
@@ -59,6 +61,7 @@ describe('parser.ts', () => {
         <table>
           <tr>
             <td>1</td>
+            <td>&nbsp;</td>
             <td>bachkat    fares</td>
             <td>1541</td>
             <td></td>
@@ -240,6 +243,7 @@ describe('parser.ts', () => {
         <table>
           <tr>
             <td>1</td>
+            <td>&nbsp;</td>
             <td>PLAYER ONE</td>
             <td>1500</td>
             <td></td>
