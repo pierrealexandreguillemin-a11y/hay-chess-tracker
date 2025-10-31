@@ -21,7 +21,7 @@ import {
   searchTournaments,
   getTournamentStats,
 } from './storage';
-import type { Event, StorageData, Tournament, Player } from '@/types';
+import type { Event, StorageData, Player } from '@/types';
 
 // Mock localStorage
 const localStorageMock = (() => {
@@ -512,8 +512,7 @@ describe('storage.ts', () => {
       });
 
       it('updates lastUpdate timestamp', () => {
-        const originalTournament = getTournamentById('tournament-1');
-        const originalTimestamp = originalTournament?.lastUpdate;
+        getTournamentById('tournament-1'); // Ensure tournament exists
 
         // Ensure timestamp is in ISO format and has been set
         const updated = updateTournament('tournament-1', {

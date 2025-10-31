@@ -86,40 +86,6 @@ function parsePoints(text: string): number {
 }
 
 /**
- * Parse round result from cell text
- * @param cellText - Format: "+ 75B", "- 6N", "= 2B", "EXE", "> 91B"
- * @param round - Round number
- */
-function parseRoundResult(
-  cellText: string,
-  round: number
-): Result | null {
-  if (!cellText || cellText === '-') return null;
-
-  // Special cases: Exempt (bye)
-  if (cellText === 'EXE' || cellText.startsWith('>')) {
-    return { round, score: 1, opponent: 'EXEMPT' };
-  }
-
-  // Normal result: [+/-/=] [number][B/N]
-  const match = cellText.match(/^([+\-=])\s*(\d+)([BN])?$/);
-  if (!match) return null;
-
-  const [, result, opponentNum] = match;
-
-  let score: 0 | 0.5 | 1;
-  if (result === '+') score = 1;
-  else if (result === '-') score = 0;
-  else score = 0.5;
-
-  return {
-    round,
-    score,
-    opponent: opponentNum,
-  };
-}
-
-/**
  * Parse player list page (Action=Ls) to extract club information
  * @returns Map of player name -> club name
  */
@@ -157,44 +123,23 @@ export function parseResults(
   const $ = cheerio.load(htmlResults);
   const players: Player[] = [];
 
-  // Find results table (American grid)
-  const table = $('table').first();
-  const headerRow = table.find('thead tr').first();
+  // FFE structure: Each player is in a <tr> that CONTAINS <div class="papi_joueur_box">
+  // This filters out sub-table rows which don't have the div
+  $('tr').filter((_, row) => {
+    return $(row).find('div.papi_joueur_box').length > 0;
+  }).each((_, row) => {
+    const cells = $(row).find('> td');
+    if (cells.length < 3) return;
 
-  // 1. Detect round columns dynamically
-  const roundColumns: number[] = [];
-  headerRow.find('th').each((i, th) => {
-    const text = $(th).text().trim();
-    if (text.match(/^R\s*\d+$/)) { // "R 1", "R 2", etc.
-      roundColumns.push(i);
-    }
-  });
-  const numRounds = roundColumns.length;
-
-  // 2. Find important column indices
-  let ptsIndex = -1;
-  let buchholzIndex = -1;
-  let perfIndex = -1;
-
-  headerRow.find('th').each((i, th) => {
-    const text = $(th).text().trim();
-    if (text === 'Pts') ptsIndex = i;
-    if (text === 'Tr.' || text === 'Tr') buchholzIndex = i;
-    if (text === 'Perf') perfIndex = i;
-  });
-
-  // 3. Parse each player row
-  table.find('tbody tr').each((_, row) => {
-    const cells = $(row).find('td');
-    if (cells.length < 5) return; // Skip invalid rows
-
-    // Extract basic data
+    // cells[0] = Ranking (Pl)
     const ranking = parseInt($(cells[0]).text().trim()) || 0;
-    const nameRaw = $(cells[1]).text().trim();
-    const name = cleanPlayerName(nameRaw);
 
-    const eloText = $(cells[2]).text().trim();
-    const elo = parseElo(eloText);
+    // cells[2] contains the player div
+    const playerDiv = $(cells[2]).find('div.papi_joueur_box');
+
+    // Player name is in <b> tag
+    const nameRaw = playerDiv.find('b').first().text().trim();
+    const name = cleanPlayerName(nameRaw);
 
     // Get club from map
     const club = playerClubMap.get(name) || '';
@@ -202,26 +147,60 @@ export function parseResults(
     // 🎯 FILTER: Keep only target club
     if (club !== CLUB_NAME) return;
 
-    // Parse round results
-    const results: Result[] = [];
-    roundColumns.forEach((colIndex, roundIndex) => {
-      const cellText = $(cells[colIndex]).text().trim();
-      const result = parseRoundResult(cellText, roundIndex + 1);
-      if (result) results.push(result);
+    // Inside playerDiv, there's a sub-table with player info
+    const subTable = playerDiv.find('table').first();
+    const infoRow = subTable.find('tr').first(); // First row has: Pl, Nom, Elo, Points, Buchholz
+    const infoCells = infoRow.find('td');
+
+    // Parse info from sub-table first row
+    // Structure: [colspan=3], Pl, empty, Nom, Elo, Cat, Fede, Ligue, Points, Buchholz, Perf
+    let elo = 0;
+    let currentPoints = 0;
+    let buchholz: number | undefined;
+    let performance: number | undefined;
+
+    infoCells.each((_, cell) => {
+      const text = $(cell).text().trim();
+
+      // Find Elo (format: "1468 F")
+      if (/^\d{3,4}\s*[FEN]?$/.test(text)) {
+        elo = parseElo(text);
+      }
+
+      // Points are usually near the end (format: "5" or "4½")
+      if (/^\d+[½⁄₂]?$/.test(text) && !performance) {
+        const parsed = parsePoints(text);
+        if (parsed < 20) { // Distinguish from Buchholz
+          currentPoints = parsed;
+        } else if (!buchholz) {
+          buchholz = parsed;
+        }
+      }
     });
 
-    // Extract final stats
-    const currentPoints = ptsIndex >= 0
-      ? parsePoints($(cells[ptsIndex]).text().trim())
-      : 0;
+    // Parse round results from subsequent rows in sub-table
+    const results: Result[] = [];
+    subTable.find('tr').slice(1).each((roundIndex, resultRow) => {
+      const resultCells = $(resultRow).find('td');
+      if (resultCells.length < 3) return;
 
-    const buchholz = buchholzIndex >= 0
-      ? parseFloat($(cells[buchholzIndex]).text().trim()) || undefined
-      : undefined;
+      // Structure: Round#, Color (B/N), Score (0/1), OpponentPl, empty, OpponentName, ...
+      const roundNum = roundIndex + 1;
+      const scoreText = $(resultCells[2]).text().trim();
 
-    const performance = perfIndex >= 0
-      ? parseInt($(cells[perfIndex]).text().trim()) || undefined
-      : undefined;
+      let score: 0 | 0.5 | 1 = 0;
+      if (scoreText === '1') score = 1;
+      else if (scoreText === '½' || scoreText === '0.5') score = 0.5;
+      else score = 0;
+
+      const opponentPl = $(resultCells[3]).text().trim();
+
+      results.push({
+        round: roundNum,
+        score,
+        opponent: opponentPl || undefined,
+      });
+    });
 
     players.push({
       name,
@@ -232,7 +211,7 @@ export function parseResults(
       currentPoints,
       buchholz,
       performance,
-      validated: new Array(numRounds).fill(false),
+      validated: new Array(results.length).fill(false),
     });
   });
 
