@@ -10,7 +10,7 @@ import {
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Badge } from '@/components/ui/badge';
-import { Check, X, Minus } from 'lucide-react';
+// Icons removed - displaying text scores (1/0/0.5) instead
 import { setValidation, getValidation } from '@/lib/storage';
 import type { Tournament } from '@/types';
 
@@ -63,10 +63,8 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
     }));
   };
 
-  const getScoreIcon = (score: 0 | 0.5 | 1) => {
-    if (score === 1) return <Check className="h-4 w-4 text-green-600" />;
-    if (score === 0) return <X className="h-4 w-4 text-red-600" />;
-    return <Minus className="h-4 w-4 text-yellow-600" />;
+  const getScoreDisplay = (score: 0 | 0.5 | 1): string => {
+    return score.toString();
   };
 
   const maxRounds = Math.max(...tournament.players.map(p => p.results.length), 0);
@@ -103,9 +101,9 @@ export default function PlayerTable({ tournament }: PlayerTableProps) {
                   return (
                     <TableCell key={i} className="text-center">
                       {result ? (
-                        <div className="flex items-center justify-center">
-                          {getScoreIcon(result.score)}
-                        </div>
+                        <span className="font-medium">
+                          {getScoreDisplay(result.score)}
+                        </span>
                       ) : (
                         <span className="text-muted-foreground">-</span>
                       )}
