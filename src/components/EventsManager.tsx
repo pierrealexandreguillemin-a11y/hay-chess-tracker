@@ -202,7 +202,7 @@ export default function EventsManager({ currentEventId, onEventChange, onNewEven
                   className="miami-glass-foreground border-miami-aqua/30 hover:bg-miami-aqua/10"
                   title="Importer un événement"
                 >
-                  <Upload className="w-4 h-4" />
+                  <Download className="w-4 h-4" />
                 </Button>
                 <Button
                   variant="miami"
@@ -289,7 +289,7 @@ export default function EventsManager({ currentEventId, onEventChange, onNewEven
                           }}
                           title="Exporter cet événement"
                         >
-                          <Download className="w-4 h-4" />
+                          <Upload className="w-4 h-4" />
                         </Button>
                         <Button
                           variant="ghost"
