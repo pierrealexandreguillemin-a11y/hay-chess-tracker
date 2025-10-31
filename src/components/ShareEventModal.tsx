@@ -27,8 +27,14 @@ export default function ShareEventModal({ eventId, eventName, trigger }: ShareEv
 
   useEffect(() => {
     if (open) {
+      console.log('ShareEventModal: Generating URL for eventId:', eventId);
       const data = generateShareURL(eventId);
+      console.log('ShareEventModal: Generated data:', data);
       setShareData(data);
+
+      if (!data) {
+        toast.error('Impossible de générer le lien de partage');
+      }
     }
   }, [open, eventId]);
 

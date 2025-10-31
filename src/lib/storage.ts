@@ -322,11 +322,19 @@ export function decodeEventFromURL(compressed: string): ExportedEvent | null {
  * Generate shareable URL for an event
  */
 export function generateShareURL(eventId: string): { url: string; size: number } | null {
+  console.log('generateShareURL: eventId =', eventId);
   const encoded = encodeEventToURL(eventId);
-  if (!encoded) return null;
+  console.log('generateShareURL: encoded =', encoded ? `${encoded.substring(0, 50)}...` : null);
+
+  if (!encoded) {
+    console.error('generateShareURL: Failed to encode event');
+    return null;
+  }
 
   const baseURL = window.location.origin + window.location.pathname;
   const url = `${baseURL}?share=${encoded}`;
+
+  console.log('generateShareURL: url length =', url.length);
 
   return {
     url,
