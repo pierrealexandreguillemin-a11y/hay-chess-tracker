@@ -3,6 +3,7 @@ import { getCurrentEvent, saveEvent } from '@/lib/storage';
 import { Button } from '@/components/ui/button';
 import EventForm from '@/components/EventForm';
 import TournamentTabs from '@/components/TournamentTabs';
+import EventsManager from '@/components/EventsManager';
 import HalftoneWaves from '@/components/HalftoneWaves';
 import BackgroundPaths from '@/components/BackgroundPaths';
 import FloatingParticles from '@/components/common/FloatingParticles';
@@ -17,6 +18,11 @@ function App() {
   const handleEventCreated = (event: Event) => {
     saveEvent(event);
     setCurrentEvent(event);
+    setShowEventForm(false);
+  };
+
+  const handleEventChange = () => {
+    setCurrentEvent(getCurrentEvent());
     setShowEventForm(false);
   };
 
@@ -49,12 +55,18 @@ function App() {
                 </p>
               )}
             </div>
-            <Button
-              variant="miami"
-              onClick={() => setShowEventForm(!showEventForm)}
-            >
-              {showEventForm ? 'Annuler' : 'Nouvel événement'}
-            </Button>
+            <div className="flex gap-3">
+              <EventsManager
+                currentEventId={currentEvent?.id || ''}
+                onEventChange={handleEventChange}
+              />
+              <Button
+                variant="miami"
+                onClick={() => setShowEventForm(!showEventForm)}
+              >
+                {showEventForm ? 'Annuler' : 'Nouvel événement'}
+              </Button>
+            </div>
           </div>
           </div>
         </header>

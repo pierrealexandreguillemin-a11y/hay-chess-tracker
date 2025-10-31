@@ -34,11 +34,30 @@ export function setStorageData(data: StorageData): void {
   }
 }
 
+// Get all events
+export function getAllEvents(): Event[] {
+  const data = getStorageData();
+  return data.events;
+}
+
 // Get current event
 export function getCurrentEvent(): Event | null {
   const data = getStorageData();
   if (!data.currentEventId) return null;
   return data.events.find(e => e.id === data.currentEventId) || null;
+}
+
+// Set current event (switch between events)
+export function setCurrentEvent(eventId: string): void {
+  const data = getStorageData();
+  const event = data.events.find(e => e.id === eventId);
+
+  if (!event) {
+    throw new Error(`Event with id ${eventId} not found`);
+  }
+
+  data.currentEventId = eventId;
+  setStorageData(data);
 }
 
 // Save event
