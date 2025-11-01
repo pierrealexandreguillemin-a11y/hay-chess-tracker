@@ -10,7 +10,6 @@ import HalftoneWaves from '@/components/HalftoneWaves';
 import BackgroundPaths from '@/components/BackgroundPaths';
 import FloatingParticles from '@/components/common/FloatingParticles';
 import DuplicateEventDialog from '@/components/DuplicateEventDialog';
-import DebugPanel from '@/components/DebugPanel';
 import { Toaster } from 'sonner';
 // MiamiGlass removed - using .miami-glass-foreground class directly
 import type { Event } from '@/types';
@@ -193,9 +192,6 @@ function App() {
           onKeepBoth={handleDuplicateKeepBoth}
           onCancel={handleDuplicateCancel}
         />
-
-        {/* Debug Panel */}
-        <DebugPanel />
       </div>
     </div>
   );
