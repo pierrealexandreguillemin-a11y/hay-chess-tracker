@@ -53,6 +53,7 @@ export default function ShareEventModal({ eventId, eventName, trigger }: ShareEv
   };
 
   const urlSizeWarning = shareData && shareData.size > 2000;
+  const qrCodeTooBig = shareData && shareData.size > 2900; // QR code limit
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -79,20 +80,32 @@ export default function ShareEventModal({ eventId, eventName, trigger }: ShareEv
           </div>
         ) : (
           <div className="space-y-4">
-            {/* QR Code */}
-            <div className="flex flex-col items-center gap-3 p-6 rounded-lg" style={{
-              background: 'white',
-            }}>
-              <QRCodeSVG
-                value={shareData.url}
-                size={200}
-                level="M"
-                includeMargin={true}
-              />
-              <p className="text-xs text-center text-miami-navy/60">
-                Scannez ce QR code pour importer l'événement
-              </p>
-            </div>
+            {/* QR Code or Error */}
+            {qrCodeTooBig ? (
+              <Alert className="border-red-500/50 bg-red-50">
+                <AlertCircle className="h-4 w-4 text-red-600" />
+                <AlertDescription className="text-red-800 text-sm">
+                  <strong>Événement trop volumineux pour un QR code</strong>
+                  <br />
+                  Utilisez le bouton "Export" (téléchargement) pour partager cet événement via fichier JSON.
+                  Le lien ci-dessous reste utilisable pour copier/coller.
+                </AlertDescription>
+              </Alert>
+            ) : (
+              <div className="flex flex-col items-center gap-3 p-6 rounded-lg" style={{
+                background: 'white',
+              }}>
+                <QRCodeSVG
+                  value={shareData.url}
+                  size={200}
+                  level="M"
+                  includeMargin={true}
+                />
+                <p className="text-xs text-center text-miami-navy/60">
+                  Scannez ce QR code pour importer l'événement
+                </p>
+              </div>
+            )}
 
             {/* URL Warning */}
             {urlSizeWarning && (
