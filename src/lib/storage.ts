@@ -174,7 +174,7 @@ export interface ExportedEvent {
 /**
  * Export a single event as JSON (for sharing)
  */
-export function exportEvent(eventId: string): ExportedEvent | null {
+export function exportEvent(eventId: string, includeValidations: boolean = true): ExportedEvent | null {
   const data = getStorageData();
   const event = data.events.find(e => e.id === eventId);
 
@@ -182,11 +182,14 @@ export function exportEvent(eventId: string): ExportedEvent | null {
 
   // Get validations for all tournaments in this event
   const eventValidations: ValidationState = {};
-  event.tournaments.forEach(tournament => {
-    if (data.validations[tournament.id]) {
-      eventValidations[tournament.id] = data.validations[tournament.id];
-    }
-  });
+
+  if (includeValidations) {
+    event.tournaments.forEach(tournament => {
+      if (data.validations[tournament.id]) {
+        eventValidations[tournament.id] = data.validations[tournament.id];
+      }
+    });
+  }
 
   return {
     version: '1.0',
@@ -280,10 +283,10 @@ export function importEvent(
 // ========================================
 
 /**
- * Encode event to compressed URL parameter
+ * Encode event to compressed URL parameter (without validations for QR code)
  */
 export function encodeEventToURL(eventId: string): string | null {
-  const exportedData = exportEvent(eventId);
+  const exportedData = exportEvent(eventId, false); // Exclude validations for smaller size
   if (!exportedData) return null;
 
   try {

@@ -52,8 +52,7 @@ export default function ShareEventModal({ eventId, eventName, trigger }: ShareEv
     }
   };
 
-  const urlSizeWarning = shareData && shareData.size > 2000;
-  const qrCodeTooBig = shareData && shareData.size > 2900; // QR code limit
+  const qrCodeTooBig = shareData && shareData.size > 2900; // QR code limit (~3000 chars max)
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -107,17 +106,6 @@ export default function ShareEventModal({ eventId, eventName, trigger }: ShareEv
               </div>
             )}
 
-            {/* URL Warning */}
-            {urlSizeWarning && (
-              <Alert className="border-amber-500/50 bg-amber-50">
-                <AlertCircle className="h-4 w-4 text-amber-600" />
-                <AlertDescription className="text-amber-800 text-sm">
-                  URL longue ({shareData.size} caractères). Certains navigateurs peuvent avoir des limites.
-                  Privilégiez l'export JSON pour les grands événements.
-                </AlertDescription>
-              </Alert>
-            )}
-
             {/* URL Display */}
             <div className="space-y-2">
               <label className="text-sm font-medium text-miami-navy">Lien de partage</label>
@@ -142,6 +130,16 @@ export default function ShareEventModal({ eventId, eventName, trigger }: ShareEv
                 </Button>
               </div>
             </div>
+
+            {/* Warning about validations */}
+            {!qrCodeTooBig && (
+              <Alert className="border-amber-500/50 bg-amber-50">
+                <AlertCircle className="h-4 w-4 text-amber-600" />
+                <AlertDescription className="text-amber-800 text-sm">
+                  <strong>⚠️ Attention :</strong> Les validations (cases cochées) ne sont pas incluses dans le partage QR code. Le destinataire devra les recocher manuellement. Pour partager avec les validations, utilisez le bouton Export (téléchargement JSON).
+                </AlertDescription>
+              </Alert>
+            )}
 
             {/* Instructions */}
             <div className="text-sm text-miami-navy/70 space-y-2 p-4 rounded-lg miami-glass-foreground border border-miami-aqua/10">
