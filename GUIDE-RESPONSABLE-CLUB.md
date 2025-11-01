@@ -83,18 +83,18 @@ Coach Principal (vous)          Coach Adjoint
 
 ---
 
-## 📱 Comment Partager l'Application
+## 📱 Comment Partager
 
-### Option 1: QR Code (Recommandé pour tournois)
-**Bouton "Partager" (icône) dans l'application**
+### Option 1: Partager l'Application (QR Code)
+**Bouton "Partager" (icône partagée) dans le header**
 
 **Avantages:**
 - Scan instantané avec smartphone
 - Pas de saisie d'URL
-- Idéal pour partager à d'autres clubs/parents
+- Idéal pour donner accès à l'outil
 
 **Ce qui est partagé:**
-- ✅ **L'application** (accès à l'outil)
+- ✅ **L'application vide** (accès à l'outil)
 - ❌ **PAS vos événements créés**
 
 **Usage typique:**
@@ -104,16 +104,67 @@ Coach Principal (vous)          Coach Adjoint
 → Elle crée ses propres événements
 ```
 
-### Option 2: Lien Direct
+### Option 2: Partager un Événement
+
+#### 2A. Via QR Code (Rapide, Sans Validations)
+**Bouton "Share" (icône partage) sur chaque événement dans "Gérer les événements"**
+
+**Ce qui est partagé:**
+- ✅ Événement complet (nom, date, ID)
+- ✅ Tous les tournois (URLs FFE, joueurs, scores, rondes)
+- ❌ **Validations (cases cochées) NON incluses**
+
+**⚠️ Important:**
+> Le destinataire recevra tous les tournois et données, mais devra recocher manuellement les validations. C'est une limitation de taille du QR code.
+
+**Processus:**
+1. Ouvrez "Gérer les événements"
+2. Cliquez sur l'icône "Share" de l'événement
+3. Un QR code s'affiche
+4. Le destinataire scanne → Import automatique
+
+**Usage typique:**
+```
+Au tournoi, partager rapidement l'événement à un collègue
+→ Il scanne le QR code
+→ Il voit tous les tournois et données
+→ Il recoche les validations dont il a besoin
+```
+
+#### 2B. Via Fichier JSON (Complet, Avec Validations)
+**Bouton "Download" (icône téléchargement) sur chaque événement**
+
+**Ce qui est partagé:**
+- ✅ Événement complet
+- ✅ Tous les tournois avec données
+- ✅ **Toutes les validations (cases cochées incluses)**
+
+**Processus:**
+1. Cliquez sur "Download" → Fichier JSON téléchargé
+2. Envoyez le fichier (email, WhatsApp, USB, etc.)
+3. Le destinataire clique "Upload" (icône import dans header "Gérer les événements")
+4. Sélectionne le fichier → Import automatique
+
+**Gestion des doublons:**
+Si l'événement existe déjà chez le destinataire, 3 choix:
+- **Remplacer:** Écrase l'ancien événement
+- **Garder les deux:** Crée une copie "(copie)"
+- **Annuler:** Ne fait rien
+
+**Usage typique:**
+```
+Partager un événement complet avec validations faites
+→ Partage par email/WhatsApp
+→ Import avec toutes les validations intactes
+```
+
+### Option 3: Lien Direct Application
 **URL:** `https://hay-chess-tracker.vercel.app`
 
 **Partage par:**
-- Email
-- SMS
-- WhatsApp
-- Message Teams/Slack
+- Email, SMS, WhatsApp, Teams/Slack
 
-**Même limitation:** Partage l'outil, pas les données
+**Limitation:** Partage l'outil vide, pas vos données
 
 ---
 
@@ -243,7 +294,7 @@ Responsable 1 (laptop)    Responsable 2 (tablette)    Parent (téléphone)
 | **Suivre mes tournois** | ✅ Fonctionne | - | - |
 | **Plusieurs onglets (même appareil)** | ✅ Fonctionne | - | - |
 | **Partager l'outil** | ✅ QR Code | - | - |
-| **Partager mes événements** | ❌ Non | Partage écran | Export/Import JSON |
+| **Partager mes événements** | ✅ QR Code / Export JSON | - | - |
 | **Multi-appareils (moi)** | ❌ Non | 1 seul appareil | Backend + Auth |
 | **Collaboration (équipe)** | ❌ Non | Partage écran | Backend + Permissions |
 | **Sync temps réel** | ❌ Non | Partage écran | WebSockets |
@@ -312,15 +363,16 @@ Option B (Si besoin d'autonomie):
 ## 📞 Questions Fréquentes
 
 ### Q: "Je change d'ordinateur, comment récupérer mes événements ?"
-**R:** Actuellement, impossible. Les données sont liées au navigateur.
-- **Solution actuelle:** Utiliser toujours le même appareil
-- **Solution future:** Export/Import de fichiers JSON
+**R:** Utilisez l'export/import JSON:
+1. Sur ancien appareil: Bouton "Download" sur l'événement
+2. Transférez le fichier JSON (email, USB, cloud)
+3. Sur nouvel appareil: Bouton "Upload" → Sélectionnez le fichier
 
 ### Q: "Mon collègue peut-il voir mes événements ?"
-**R:** Non, sauf si:
-- Vous partagez votre écran
-- Vous lui prêtez votre appareil
-- (Future) Vous exportez et lui importez le fichier
+**R:** Oui, 3 options:
+- **QR Code:** Partage rapide sans validations (il devra les recocher)
+- **Export JSON:** Partage complet avec toutes les validations
+- **Partage d'écran:** Vue temps réel (mais pas d'interaction)
 
 ### Q: "L'app fonctionne sans Internet ?"
 **R:** Partiellement:
@@ -344,11 +396,12 @@ Option B (Si besoin d'autonomie):
 
 ## 🚀 Évolutions Possibles
 
-### Priorité 1: Export/Import (1-2h dev)
-**Permet:**
-- Sauvegarder événements en fichiers
-- Partager via email/USB
-- Changer d'appareil facilement
+### ✅ Priorité 1: Export/Import (FAIT)
+**Fonctionnalités implémentées:**
+- ✅ Export JSON avec validations
+- ✅ Import JSON avec gestion doublons
+- ✅ Partage QR code rapide (sans validations)
+- ✅ Partage URL automatique
 
 ### Priorité 2: Backend Partagé (2-3 jours dev)
 **Permet:**
