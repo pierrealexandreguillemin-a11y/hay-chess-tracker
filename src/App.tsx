@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { getCurrentEvent, saveEvent, decodeEventFromURL, importEvent } from '@/lib/storage';
+import { startAutoSync } from '@/lib/sync';
 import { Button } from '@/components/ui/button';
 import EventForm from '@/components/EventForm';
 import TournamentTabs from '@/components/TournamentTabs';
@@ -21,6 +22,18 @@ function App() {
   const [showEventForm, setShowEventForm] = useState(() => !getCurrentEvent());
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
   const [pendingImport, setPendingImport] = useState<ExportedEvent | null>(null);
+
+  // Start auto-sync with MongoDB on mount
+  useEffect(() => {
+    console.log('🔄 Starting auto-sync service...');
+    const stopSync = startAutoSync();
+
+    // Cleanup on unmount
+    return () => {
+      console.log('🛑 Stopping auto-sync service...');
+      stopSync();
+    };
+  }, []);
 
   // Check for shared event in URL on mount
   useEffect(() => {
